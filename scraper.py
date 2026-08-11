@@ -285,7 +285,7 @@ def main():
     if not unique:
         print("Sin eventos publicados en el periodo consultado.")
         print("No se modifica calendario.ics y el workflow termina correctamente.")
-        return 0
+         return 0
 
     cal = build_calendar(list(unique.values()))
     Path(OUTPUT_FILE).write_bytes(cal.to_ical())
