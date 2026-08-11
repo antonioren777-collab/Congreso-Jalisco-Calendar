@@ -277,16 +277,15 @@ def main():
             (item["title"].casefold(), item["start"].isoformat(), item["url"])
         ] = item
 
-    if failures:
+     if failures:
         print("Avisos:")
         for f in failures:
             print(" -", f)
 
-    # Si no se pudo obtener ningún evento, no publicamos un calendario 
     if not unique:
-    print("Sin eventos publicados en el periodo consultado.")
-    print("No se modifica calendario.ics y el workflow termina correctamente.")
-    return 0
+        print("Sin eventos publicados en el periodo consultado.")
+        print("No se modifica calendario.ics y el workflow termina correctamente.")
+        return 0
 
     cal = build_calendar(list(unique.values()))
     Path(OUTPUT_FILE).write_bytes(cal.to_ical())
