@@ -11,7 +11,7 @@ BEGIN:VEVENT
 SUMMARY:Sesión Solemne
 DTSTART;TZID=America/Mexico_City:20260709T090000
 DTEND;TZID=America/Mexico_City:20260709T100000
-DTSTAMP:20260811T200402Z
+DTSTAMP:20260811T231205Z
 UID:f0f8f1caf251646e107507cb@congreso-jalisco-calendar
 CATEGORIES:Pleno
 DESCRIPTION:Diputada Alondra Getsemany Fausto de León\, presidenta de la 
@@ -24,7 +24,7 @@ BEGIN:VEVENT
 SUMMARY:Sesión Extraordinaria
 DTSTART;TZID=America/Mexico_City:20260715T000000
 DTEND;TZID=America/Mexico_City:20260716T000000
-DTSTAMP:20260811T200402Z
+DTSTAMP:20260811T231205Z
 UID:e2a1829716db8fe894435570@congreso-jalisco-calendar
 CATEGORIES:Pleno
 DESCRIPTION:Sesión extraordinaria del Pleno identificada en información 
@@ -38,7 +38,7 @@ BEGIN:VEVENT
 SUMMARY:Comisión de Salud (TELEMATICA)
 DTSTART;TZID=America/Mexico_City:20260717T150000
 DTEND;TZID=America/Mexico_City:20260717T160000
-DTSTAMP:20260811T200402Z
+DTSTAMP:20260811T231205Z
 UID:b0e49c65cc47c4ab04d07e92@congreso-jalisco-calendar
 CATEGORIES:Comisión de Higiene\, Salud y Prevención de las Adicciones
 DESCRIPTION:Diputada presidenta Mónica Paola Magaña Mendoza\n\nFuente of
@@ -52,7 +52,7 @@ BEGIN:VEVENT
 SUMMARY:Sesión Extraordinaria
 DTSTART;TZID=America/Mexico_City:20260721T000000
 DTEND;TZID=America/Mexico_City:20260722T000000
-DTSTAMP:20260811T200402Z
+DTSTAMP:20260811T231205Z
 UID:6e021d352398e60257065d6a@congreso-jalisco-calendar
 CATEGORIES:Pleno
 DESCRIPTION:Sesión extraordinaria del Pleno identificada en información 
