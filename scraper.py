@@ -282,11 +282,11 @@ def main():
         for f in failures:
             print(" -", f)
 
-    # Si no se pudo obtener ningún evento, no publicamos un calendario vacío.
+    # Si no se pudo obtener ningún evento, no publicamos un calendario 
     if not unique:
-        raise RuntimeError(
-            "No se encontraron eventos. No se reemplaza el calendario existente."
-        )
+    print("Sin eventos publicados en el periodo consultado.")
+    print("No se modifica calendario.ics y el workflow termina correctamente.")
+    return 0
 
     cal = build_calendar(list(unique.values()))
     Path(OUTPUT_FILE).write_bytes(cal.to_ical())
@@ -296,4 +296,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
