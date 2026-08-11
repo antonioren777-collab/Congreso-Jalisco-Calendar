@@ -252,9 +252,10 @@ def build_calendar(items: list[dict]) -> Calendar:
 
 
 def months_to_scan():
-    today = date.today().replace(day=1)
+    start = date(2026, 7, 1)
+
     for i in range(LOOK_AHEAD_MONTHS + 1):
-        d = today + relativedelta(months=i)
+        d = start + relativedelta(months=i)
         yield d.year, d.month
 
 
