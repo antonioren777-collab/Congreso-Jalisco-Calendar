@@ -38,23 +38,7 @@ PLENO_PATTERNS = (
 )
 
 COMMISSION_PATTERNS = (
-    "comisión de higiene, salud pública y prevención de las adicciones",
-    "comision de higiene, salud publica y prevencion de las adicciones",
-
-    "comisión de higiene, salud pública",
-    "comision de higiene, salud publica",
-
-    "comisión de higiene y salud",
-    "comision de higiene y salud",
-
-    "comisión de higiene, salud",
-    "comision de higiene, salud",
-
-    "comisión de salud",
-    "comision de salud",
-
-    "prevención de las adicciones",
-    "prevencion de las adicciones",
+    "salud",
 )
 
 # ============================================================
