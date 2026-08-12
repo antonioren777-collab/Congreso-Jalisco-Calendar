@@ -14,7 +14,9 @@ from icalendar import Calendar, Event
 from zoneinfo import ZoneInfo
 
 from config import (
-    BASE_URL,
+    GACETA_BASE_URL,
+    GACETA_CALENDAR_URL,
+    AGENDA_BASE_URL,
     MONTH_URL,
     OUTPUT_FILE,
     TIMEZONE,
@@ -23,17 +25,11 @@ from config import (
     LOOK_AHEAD_MONTHS,
     REQUEST_TIMEOUT,
     USER_AGENT,
+    START_YEAR,
+    START_MONTH,
 )
 
 TZ = ZoneInfo(TIMEZONE)
-
-# ------------------------------------------------------------
-# CONFIGURACIÓN
-# ------------------------------------------------------------
-
-# El calendario comenzará en julio de 2026.
-START_YEAR = 2026
-START_MONTH = 7
 
 MONTHS = {
     "enero": 1,
@@ -53,7 +49,7 @@ MONTHS = {
     "agosto": 8,
     "ago": 8,
     "septiembre": 9,
-    "septiembre": 9,
+    "sept": 9,
     "sep": 9,
     "setiembre": 9,
     "octubre": 10,
@@ -65,9 +61,9 @@ MONTHS = {
 }
 
 
-# ------------------------------------------------------------
+# ============================================================
 # UTILIDADES
-# ------------------------------------------------------------
+# ============================================================
 
 def normalize(text: str) -> str:
     text = html.unescape(text or "")
@@ -78,10 +74,14 @@ def normalize(text: str) -> str:
 
 def get_session() -> requests.Session:
     session = requests.Session()
-    session.headers.update({
-        "User-Agent": USER_AGENT,
-        "Accept-Language": "es-MX,es;q=0.9,en;q=0.8",
-    })
+
+    session.headers.update(
+        {
+            "User-Agent": USER_AGENT,
+            "Accept-Language": "es-MX,es;q=0.9,en;q=0.8",
+        }
+    )
+
     return session
 
 
@@ -100,69 +100,53 @@ def month_name(month: int) -> str:
         11: "noviembre",
         12: "diciembre",
     }
+
     return names[month]
 
 
-# ------------------------------------------------------------
+# ============================================================
 # CLASIFICACIÓN
-# ------------------------------------------------------------
+# ============================================================
 
 def is_pleno(title: str) -> bool:
-    t = normalize(title).casefold()
+    text = normalize(title).casefold()
 
-    patrones = (
-        "sesión ordinaria",
-        "sesion ordinaria",
-        "sesión extraordinaria",
-        "sesion extraordinaria",
-        "sesión solemne",
-        "sesion solemne",
+    return any(
+        pattern.casefold() in text
+        for pattern in PLENO_PATTERNS
     )
-
-    return any(pattern in t for pattern in patrones)
 
 
 def is_commission(title: str) -> bool:
-    t = normalize(title).casefold()
+    text = normalize(title).casefold()
 
-    # Denominaciones que han aparecido en la agenda.
-    patrones = (
-        "comisión de salud",
-        "comision de salud",
-        "comisión de higiene y salud",
-        "comision de higiene y salud",
-        "comisión de higiene, salud",
-        "comision de higiene, salud",
-        "comisión de higiene salud",
-        "comision de higiene salud",
-        "comisión de salud e higiene",
-        "comision de salud e higiene",
-        "comisión de higiene, salud pública",
-        "comision de higiene, salud publica",
-        "prevención de las adicciones",
-        "prevencion de las adicciones",
+    return any(
+        pattern.casefold() in text
+        for pattern in COMMISSION_PATTERNS
     )
-
-    return any(pattern in t for pattern in patrones)
-
-
-def is_target(title: str) -> bool:
-    return is_pleno(title) or is_commission(title)
 
 
 def classify(title: str) -> str | None:
+
     if is_pleno(title):
         return "Pleno"
 
     if is_commission(title):
-        return "Comisión de Higiene, Salud y Prevención de las Adicciones"
+        return (
+            "Comisión de Higiene, Salud y "
+            "Prevención de las Adicciones"
+        )
 
     return None
 
 
-# ------------------------------------------------------------
-# FECHAS Y HORAS
-# ------------------------------------------------------------
+def is_target(title: str) -> bool:
+    return classify(title) is not None
+
+
+# ============================================================
+# FECHAS
+# ============================================================
 
 def parse_date_time(
     text: str,
@@ -173,9 +157,10 @@ def parse_date_time(
 
     # Ejemplos:
     # 9 Jul 2026 - 09:00
-    # 28 Mayo 2026 - 09:00 a 09:45
     # 15 Julio 2026 - 10:00
-    pattern_month = re.compile(
+    # 21 Julio 2026 - 12:00
+
+    pattern = re.compile(
         r"(\d{1,2})\s+"
         r"([A-Za-zÁÉÍÓÚáéíóúñÑ]+)\s+"
         r"(\d{4})"
@@ -184,7 +169,7 @@ def parse_date_time(
         flags=re.I,
     )
 
-    match = pattern_month.search(text)
+    match = pattern.search(text)
 
     if match:
         day = int(match.group(1))
@@ -193,10 +178,7 @@ def parse_date_time(
         hour = int(match.group(4))
         minute = int(match.group(5))
 
-        month = MONTHS.get(month_text)
-
-        if month is None:
-            month = default_month
+        month = MONTHS.get(month_text, default_month)
 
         try:
             return datetime(
@@ -210,15 +192,19 @@ def parse_date_time(
         except ValueError:
             return None
 
-    # Formato 15/07/2026 - 10:00
-    pattern_numeric = re.compile(
-        r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})"
+    # Formato:
+    # 15/07/2026 - 10:00
+
+    numeric = re.compile(
+        r"(\d{1,2})[/-]"
+        r"(\d{1,2})[/-]"
+        r"(\d{4})"
         r"\s*(?:-|a las)?\s*"
         r"(\d{1,2}):(\d{2})",
         flags=re.I,
     )
 
-    match = pattern_numeric.search(text)
+    match = numeric.search(text)
 
     if match:
         try:
@@ -251,6 +237,7 @@ def parse_date_only(
     )
 
     for match in pattern.finditer(text):
+
         day = int(match.group(1))
         month_text = match.group(2).casefold()
 
@@ -276,7 +263,10 @@ def parse_date_only(
     return None
 
 
-def parse_end_time(text: str, start: datetime):
+def parse_end_time(
+    text: str,
+    start: datetime,
+):
     text = normalize(text)
 
     pattern = re.compile(
@@ -302,9 +292,67 @@ def parse_end_time(text: str, start: datetime):
     return end
 
 
-# ------------------------------------------------------------
-# EVENTOS DE LA AGENDA PARLAMENTARIA
-# ------------------------------------------------------------
+# ============================================================
+# GACETA
+# ============================================================
+
+def verify_gaceta_calendar(
+    session: requests.Session,
+) -> bool:
+    """
+    Comprueba que el calendario oficial de la Gaceta
+    siga disponible.
+
+    No dependemos del texto extraído del PDF para identificar
+    las fechas, porque las marcas gráficas del calendario no
+    son fiables mediante extracción de texto.
+    """
+
+    try:
+        response = session.get(
+            GACETA_CALENDAR_URL,
+            timeout=REQUEST_TIMEOUT,
+        )
+
+        response.raise_for_status()
+
+        content_type = response.headers.get(
+            "Content-Type",
+            "",
+        ).lower()
+
+        if "pdf" not in content_type:
+            print(
+                "ADVERTENCIA: la Gaceta respondió, "
+                "pero no indicó PDF."
+            )
+
+        if len(response.content) < 10_000:
+            print(
+                "ADVERTENCIA: el PDF de la Gaceta "
+                "parece demasiado pequeño."
+            )
+
+        print(
+            "Gaceta: calendario oficial 2026 "
+            "disponible."
+        )
+
+        return True
+
+    except requests.RequestException as exc:
+
+        print(
+            "ADVERTENCIA: no se pudo consultar "
+            f"la Gaceta: {exc}"
+        )
+
+        return False
+
+
+# ============================================================
+# AGENDA PARLAMENTARIA
+# ============================================================
 
 def extract_events_from_month(
     session: requests.Session,
@@ -317,11 +365,27 @@ def extract_events_from_month(
         month=month,
     )
 
-    response = session.get(
-        url,
-        timeout=REQUEST_TIMEOUT,
+    print(
+        f"Consultando agenda: "
+        f"{year}-{month:02d}"
     )
-    response.raise_for_status()
+
+    try:
+        response = session.get(
+            url,
+            timeout=REQUEST_TIMEOUT,
+        )
+
+        response.raise_for_status()
+
+    except requests.RequestException as exc:
+
+        print(
+            f"ERROR agenda {year}-{month:02d}: "
+            f"{exc}"
+        )
+
+        return []
 
     soup = BeautifulSoup(
         response.text,
@@ -331,21 +395,29 @@ def extract_events_from_month(
     results = []
     seen = set()
 
-    # Primero buscamos enlaces de agenda.
+    # Buscamos enlaces relacionados con la agenda.
+
     candidates = soup.select(
         'a[href*="/agenda/"], '
         'a[href*="/agenda-parlamentaria/"]'
     )
 
-    # Si la estructura del sitio cambia, usamos todos los enlaces
-    # cuyo texto sea un evento objetivo.
+    # Si cambia la estructura del HTML,
+    # examinamos todos los enlaces.
+
     if not candidates:
-        candidates = soup.find_all("a")
+        candidates = soup.find_all(
+            "a",
+            href=True,
+        )
 
     for link in candidates:
 
         title = normalize(
-            link.get_text(" ", strip=True)
+            link.get_text(
+                " ",
+                strip=True,
+            )
         )
 
         if not title:
@@ -357,16 +429,22 @@ def extract_events_from_month(
         href = link.get("href")
 
         event_url = (
-            urljoin(BASE_URL, href)
+            urljoin(
+                AGENDA_BASE_URL,
+                href,
+            )
             if href
             else url
         )
 
-        # Buscamos fecha/hora en el enlace y sus padres.
+        # ----------------------------------------------------
+        # Buscar fecha y hora alrededor del enlace.
+        # ----------------------------------------------------
+
         container = link
         candidate_texts = []
 
-        for _ in range(8):
+        for _ in range(10):
 
             if container is None:
                 break
@@ -414,10 +492,17 @@ def extract_events_from_month(
 
         category = classify(title)
 
+        if category is None:
+            continue
+
+        # ----------------------------------------------------
+        # Deduplicación.
+        # ----------------------------------------------------
+
         key = (
-            title.casefold(),
+            category,
             start.isoformat(),
-            event_url,
+            title.casefold(),
         )
 
         if key in seen:
@@ -428,14 +513,19 @@ def extract_events_from_month(
         location = ""
         description = ""
 
-        # Intentamos consultar la ficha individual.
+        # ----------------------------------------------------
+        # Consultar ficha individual.
+        # ----------------------------------------------------
+
         try:
+
             detail = session.get(
                 event_url,
                 timeout=REQUEST_TIMEOUT,
             )
 
             if detail.ok:
+
                 detail_soup = BeautifulSoup(
                     detail.text,
                     "html.parser",
@@ -456,6 +546,7 @@ def extract_events_from_month(
                 )
 
                 if location_match:
+
                     location = normalize(
                         location_match.group(1)
                     )
@@ -468,6 +559,7 @@ def extract_events_from_month(
                 )
 
                 if description_match:
+
                     description = normalize(
                         description_match.group(1)
                     )
@@ -475,52 +567,65 @@ def extract_events_from_month(
         except requests.RequestException:
             pass
 
-        results.append({
-            "title": title,
-            "category": category,
-            "start": start,
-            "end": end,
-            "url": event_url,
-            "location": location,
-            "description": description,
-        })
+        results.append(
+            {
+                "title": title,
+                "category": category,
+                "start": start,
+                "end": end,
+                "url": event_url,
+                "location": location,
+                "description": description,
+                "source": "Agenda Parlamentaria",
+            }
+        )
+
+    print(
+        f"{year}-{month:02d}: "
+        f"{len(results)} eventos encontrados"
+    )
 
     return results
 
 
-# ------------------------------------------------------------
-# BOLETINES OFICIALES
-# ------------------------------------------------------------
+# ============================================================
+# BÚSQUEDA ESPECÍFICA DE SESIONES EXTRAORDINARIAS
+# ============================================================
 
-def extract_extraordinary_sessions_from_bulletins(
+def extract_extraordinary_from_site(
     session: requests.Session,
     year: int,
     month: int,
 ) -> list[dict]:
-    """
-    Busca sesiones extraordinarias en los boletines oficiales.
 
-    Esto sirve como segunda fuente porque algunas sesiones del Pleno
-    pueden no aparecer en la Agenda Parlamentaria.
+    """
+    Segunda búsqueda independiente.
+
+    Se revisa la página de boletines para recuperar
+    sesiones extraordinarias que puedan no aparecer
+    como tarjetas normales de la agenda.
     """
 
     results = []
     seen = set()
 
-    # Revisamos varias páginas de boletines.
     for page in range(0, 8):
 
-        if page == 0:
-            url = f"{BASE_URL}/boletines"
-        else:
-            url = f"{BASE_URL}/boletines?page={page}"
+        url = (
+            f"{AGENDA_BASE_URL}/boletines"
+            if page == 0
+            else f"{AGENDA_BASE_URL}/boletines?page={page}"
+        )
 
         try:
+
             response = session.get(
                 url,
                 timeout=REQUEST_TIMEOUT,
             )
+
             response.raise_for_status()
+
         except requests.RequestException:
             continue
 
@@ -529,33 +634,25 @@ def extract_extraordinary_sessions_from_bulletins(
             "html.parser",
         )
 
-        # Buscamos enlaces a notas individuales.
-        links = soup.find_all("a", href=True)
-
-        page_found = False
+        links = soup.find_all(
+            "a",
+            href=True,
+        )
 
         for link in links:
 
             href = link.get("href", "")
-            text = normalize(
-                link.get_text(" ", strip=True)
-            )
-
-            if not href:
-                continue
 
             if "/boletines/" not in href:
                 continue
 
-            if href.rstrip("/") == "/boletines":
-                continue
-
             article_url = urljoin(
-                BASE_URL,
+                AGENDA_BASE_URL,
                 href,
             )
 
             try:
+
                 article = session.get(
                     article_url,
                     timeout=REQUEST_TIMEOUT,
@@ -579,62 +676,85 @@ def extract_extraordinary_sessions_from_bulletins(
                 )
             )
 
-            lower_body = body.casefold()
+            lower = body.casefold()
 
             if (
                 "sesión extraordinaria"
-                not in lower_body
-                and "sesion extraordinaria"
-                not in lower_body
+                not in lower
+                and
+                "sesion extraordinaria"
+                not in lower
             ):
                 continue
 
-            # Buscamos la fecha del boletín.
-            published_date = parse_date_only(
+            # IMPORTANTE:
+            # No usamos automáticamente la fecha del boletín.
+            # Primero intentamos encontrar una fecha de sesión.
+
+            date_match = re.search(
+                r"(?:sesión extraordinaria|"
+                r"sesion extraordinaria)"
+                r".{0,500}?"
+                r"(\d{1,2})\s+"
+                r"([A-Za-zÁÉÍÓÚáéíóúñÑ]+)"
+                r"(?:\s+(\d{4}))?"
+                r"(?:\s*(?:a las|-)\s*)?"
+                r"(\d{1,2})?:?"
+                r"(\d{2})?",
                 body,
-                year,
-                month,
+                flags=re.I,
             )
 
-            if published_date is None:
+            if not date_match:
                 continue
 
-            if (
-                published_date.year != year
-                or published_date.month != month
-            ):
-                continue
+            day = int(date_match.group(1))
+            month_text = date_match.group(2).casefold()
 
-            page_found = True
-
-            # Intentamos obtener hora si aparece.
-            start = parse_date_time(
-                body,
-                year,
-                month,
+            session_month = MONTHS.get(
+                month_text
             )
 
-            if start is None:
-                # Si no hay hora publicada, evento de día completo.
+            if session_month != month:
+                continue
+
+            session_year = (
+                int(date_match.group(3))
+                if date_match.group(3)
+                else year
+            )
+
+            if session_year != year:
+                continue
+
+            hour = (
+                int(date_match.group(4))
+                if date_match.group(4)
+                else 0
+            )
+
+            minute = (
+                int(date_match.group(5))
+                if date_match.group(5)
+                else 0
+            )
+
+            try:
+
                 start = datetime(
-                    published_date.year,
-                    published_date.month,
-                    published_date.day,
+                    session_year,
+                    session_month,
+                    day,
+                    hour,
+                    minute,
                     tzinfo=TZ,
                 )
 
-                end = start + timedelta(days=1)
-
-            else:
-                end = parse_end_time(
-                    body,
-                    start,
-                )
-
-            title = "Sesión Extraordinaria"
+            except ValueError:
+                continue
 
             key = (
-                title.casefold(),
+                "Pleno",
                 start.date().isoformat(),
             )
 
@@ -643,72 +763,78 @@ def extract_extraordinary_sessions_from_bulletins(
 
             seen.add(key)
 
-            description = (
-                "Sesión extraordinaria del Pleno "
-                "identificada en información oficial "
-                "del Congreso de Jalisco."
+            results.append(
+                {
+                    "title": "Sesión Extraordinaria",
+                    "category": "Pleno",
+                    "start": start,
+                    "end": start + timedelta(hours=1),
+                    "url": article_url,
+                    "location": "",
+                    "description": (
+                        "Sesión extraordinaria del "
+                        "Pleno identificada en "
+                        "información oficial del "
+                        "Congreso de Jalisco."
+                    ),
+                    "source": "Boletín oficial",
+                }
             )
-
-            results.append({
-                "title": title,
-                "category": "Pleno",
-                "start": start,
-                "end": end,
-                "url": article_url,
-                "location": "",
-                "description": description,
-            })
-
-        # Si ya no encontramos ningún boletín en la página,
-        # seguimos algunas páginas más por seguridad.
-        if not page_found and page >= 3:
-            break
 
     return results
 
 
-# ------------------------------------------------------------
-# DEDUPLICACIÓN
-# ------------------------------------------------------------
-
-def event_key(item: dict):
-    return (
-        item["title"].casefold(),
-        item["start"].date().isoformat(),
-        item["category"],
-    )
-
+# ============================================================
+# DEDUPLICACIÓN GLOBAL
+# ============================================================
 
 def deduplicate_events(
-    items: list[dict],
+    events: list[dict],
 ) -> list[dict]:
 
     unique = {}
 
-    for item in items:
+    for event in events:
 
-        key = event_key(item)
+        key = (
+            event["category"],
+            event["start"].date().isoformat(),
+            normalize(
+                event["title"]
+            ).casefold(),
+        )
 
-        # Si ya existe, preferimos el que tenga hora concreta
-        # frente a uno de día completo.
         if key not in unique:
-            unique[key] = item
+
+            unique[key] = event
+
             continue
+
+        # Si tenemos dos versiones del mismo evento,
+        # conservamos la que tenga más información.
 
         current = unique[key]
 
-        current_has_time = (
-            current["start"].hour != 0
-            or current["start"].minute != 0
+        current_score = sum(
+            bool(current.get(field))
+            for field in (
+                "location",
+                "description",
+                "url",
+            )
         )
 
-        new_has_time = (
-            item["start"].hour != 0
-            or item["start"].minute != 0
+        new_score = sum(
+            bool(event.get(field))
+            for field in (
+                "location",
+                "description",
+                "url",
+            )
         )
 
-        if new_has_time and not current_has_time:
-            unique[key] = item
+        if new_score > current_score:
+            unique[key] = event
 
     return sorted(
         unique.values(),
@@ -716,37 +842,37 @@ def deduplicate_events(
     )
 
 
-# ------------------------------------------------------------
-# CALENDARIO ICS
-# ------------------------------------------------------------
+# ============================================================
+# ICS
+# ============================================================
 
-def event_uid(item: dict) -> str:
+def event_uid(event: dict) -> str:
 
     raw = (
-        f'{item["title"]}|'
-        f'{item["start"].isoformat()}|'
-        f'{item["url"]}'
+        f"{event['category']}|"
+        f"{event['start'].isoformat()}|"
+        f"{event['title']}"
     )
 
-    digest = hashlib.sha256(
+    digest = hashlib.sha1(
         raw.encode("utf-8")
-    ).hexdigest()[:24]
+    ).hexdigest()
 
     return (
-        f"{digest}@"
-        "congreso-jalisco-calendar"
+        f"{digest}@congreso-jalisco-calendar"
     )
 
 
 def build_calendar(
-    items: list[dict],
+    events: list[dict],
 ) -> Calendar:
 
     calendar = Calendar()
 
     calendar.add(
         "prodid",
-        "-//Congreso de Jalisco Calendar//ES//",
+        "-//Congreso Jalisco Calendar//"
+        "ES//",
     )
 
     calendar.add(
@@ -760,42 +886,22 @@ def build_calendar(
     )
 
     calendar.add(
-        "method",
-        "PUBLISH",
-    )
-
-    calendar.add(
-        "x-wr-calname",
+        "X-WR-CALNAME",
         "Congreso de Jalisco",
     )
 
     calendar.add(
-        "x-wr-timezone",
+        "X-WR-TIMEZONE",
         TIMEZONE,
     )
 
-    calendar.add(
-        "refresh-interval;value=duration",
-        "PT12H",
-    )
-
-    calendar.add(
-        "x-published-ttl",
-        "PT12H",
-    )
-
-    for item in items:
+    for item in events:
 
         event = Event()
 
         event.add(
             "uid",
             event_uid(item),
-        )
-
-        event.add(
-            "summary",
-            item["title"],
         )
 
         event.add(
@@ -809,8 +915,8 @@ def build_calendar(
         )
 
         event.add(
-            "dtstamp",
-            datetime.now(TZ),
+            "summary",
+            item["title"],
         )
 
         event.add(
@@ -818,31 +924,39 @@ def build_calendar(
             item["category"],
         )
 
-        if item["url"]:
-            event.add(
-                "url",
-                item["url"],
-            )
-
-        description = item["description"]
-
-        if item["url"]:
-            description = (
-                f"{description}\n\n"
-                f"Fuente oficial:\n"
-                f"{item['url']}"
-            ).strip()
-
-        if description:
-            event.add(
-                "description",
-                description,
-            )
-
-        if item["location"]:
+        if item.get("location"):
             event.add(
                 "location",
                 item["location"],
+            )
+
+        description_parts = []
+
+        if item.get("description"):
+            description_parts.append(
+                item["description"]
+            )
+
+        description_parts.append(
+            f"Fuente: {item.get('source', '')}"
+        )
+
+        if item.get("url"):
+            description_parts.append(
+                f"Enlace: {item['url']}"
+            )
+
+        event.add(
+            "description",
+            "\n".join(
+                description_parts
+            ),
+        )
+
+        if item.get("url"):
+            event.add(
+                "url",
+                item["url"],
             )
 
         calendar.add_component(event)
@@ -850,237 +964,190 @@ def build_calendar(
     return calendar
 
 
-# ------------------------------------------------------------
-# MESES A REVISAR
-# ------------------------------------------------------------
+def save_calendar(
+    events: list[dict],
+):
 
-def months_to_scan():
+    calendar = build_calendar(events)
 
-    start = date(
+    output = Path(OUTPUT_FILE)
+
+    output.write_bytes(
+        calendar.to_ical()
+    )
+
+    print()
+    print(
+        f"Calendario generado: {output}"
+    )
+    print(
+        f"Total de eventos: {len(events)}"
+    )
+
+
+# ============================================================
+# RANGO DE MESES
+# ============================================================
+
+def generate_months():
+
+    current = date(
         START_YEAR,
         START_MONTH,
         1,
     )
 
-    for i in range(
-        LOOK_AHEAD_MONTHS + 1
+    for _ in range(
+        LOOK_AHEAD_MONTHS
     ):
-
-        current = start + relativedelta(
-            months=i
-        )
-
         yield (
             current.year,
             current.month,
         )
 
+        current += relativedelta(
+            months=1
+        )
 
-# ------------------------------------------------------------
+
+# ============================================================
 # MAIN
-# ------------------------------------------------------------
+# ============================================================
 
 def main():
 
+    print(
+        "=========================================="
+    )
+    print(
+        " Congreso de Jalisco - Calendario"
+    )
+    print(
+        " Fuente oficial: Gaceta Parlamentaria"
+    )
+    print(
+        "=========================================="
+    )
+    print()
+
     session = get_session()
 
-    all_events = []
-    failures = []
+    # --------------------------------------------------------
+    # 1. Comprobar Gaceta.
+    # --------------------------------------------------------
 
-    print(
-        "Inicio de revisión:",
-        f"{START_YEAR}-{START_MONTH:02d}",
+    gaceta_ok = verify_gaceta_calendar(
+        session
     )
 
-    print(
-        "Meses a revisar:",
-        LOOK_AHEAD_MONTHS + 1,
-    )
-
-    for year, month in months_to_scan():
+    if not gaceta_ok:
 
         print(
-            f"\nConsultando "
-            f"{year}-{month:02d}..."
+            "La Gaceta no está disponible."
         )
 
-        # ----------------------------------------------------
-        # FUENTE 1: AGENDA PARLAMENTARIA
-        # ----------------------------------------------------
-
-        try:
-
-            agenda_events = (
-                extract_events_from_month(
-                    session,
-                    year,
-                    month,
-                )
-            )
-
-            print(
-                f"{year}-{month:02d}: "
-                f"{len(agenda_events)} "
-                f"eventos de agenda"
-            )
-
-            all_events.extend(
-                agenda_events
-            )
-
-        except Exception as exc:
-
-            message = (
-                f"Agenda "
-                f"{year}-{month:02d}: "
-                f"{exc}"
-            )
-
-            failures.append(message)
-
-            print(
-                "ERROR:",
-                message,
-            )
-
-        # ----------------------------------------------------
-        # FUENTE 2: BOLETINES
-        # ----------------------------------------------------
-
-        try:
-
-            bulletin_events = (
-                extract_extraordinary_sessions_from_bulletins(
-                    session,
-                    year,
-                    month,
-                )
-            )
-
-            if bulletin_events:
-
-                print(
-                    f"{year}-{month:02d}: "
-                    f"{len(bulletin_events)} "
-                    "sesiones extraordinarias "
-                    "adicionales"
-                )
-
-                all_events.extend(
-                    bulletin_events
-                )
-
-            else:
-
-                print(
-                    f"{year}-{month:02d}: "
-                    "0 sesiones extraordinarias "
-                    "adicionales"
-                )
-
-        except Exception as exc:
-
-            message = (
-                f"Boletines "
-                f"{year}-{month:02d}: "
-                f"{exc}"
-            )
-
-            failures.append(message)
-
-            print(
-                "ERROR:",
-                message,
-            )
+        print(
+            "Se continuará con la Agenda "
+            "Parlamentaria como fuente "
+            "complementaria."
+        )
 
     # --------------------------------------------------------
-    # DEDUPLICAR
+    # 2. Recopilar eventos.
     # --------------------------------------------------------
 
-    unique = deduplicate_events(
+    all_events = []
+
+    for year, month in generate_months():
+
+        events = extract_events_from_month(
+            session,
+            year,
+            month,
+        )
+
+        all_events.extend(events)
+
+        extraordinary = (
+            extract_extraordinary_from_site(
+                session,
+                year,
+                month,
+            )
+        )
+
+        all_events.extend(
+            extraordinary
+        )
+
+    # --------------------------------------------------------
+    # 3. Eliminar duplicados.
+    # --------------------------------------------------------
+
+    all_events = deduplicate_events(
         all_events
     )
 
+    # --------------------------------------------------------
+    # 4. Mostrar resumen.
+    # --------------------------------------------------------
+
+    pleno_count = sum(
+        event["category"] == "Pleno"
+        for event in all_events
+    )
+
+    commission_count = sum(
+        event["category"]
+        ==
+        "Comisión de Higiene, Salud y "
+        "Prevención de las Adicciones"
+        for event in all_events
+    )
+
+    print()
     print(
-        "\n================================"
+        "=========================================="
+    )
+    print("RESUMEN")
+    print(
+        "=========================================="
     )
 
     print(
-        f"Eventos finales: {len(unique)}"
+        f"Pleno: {pleno_count}"
     )
 
     print(
-        "================================"
+        f"Comisión: {commission_count}"
     )
 
-    for item in unique:
+    print(
+        f"TOTAL: {len(all_events)}"
+    )
+
+    print()
+
+    for event in all_events:
 
         print(
-            item["start"].strftime(
+            event["start"].strftime(
                 "%Y-%m-%d %H:%M"
             ),
             "|",
-            item["category"],
+            event["category"],
             "|",
-            item["title"],
+            event["title"],
         )
 
     # --------------------------------------------------------
-    # AVISOS
+    # 5. Generar ICS.
     # --------------------------------------------------------
 
-    if failures:
-
-        print("\nAvisos:")
-
-        for failure in failures:
-            print(
-                " -",
-                failure,
-            )
-
-    # --------------------------------------------------------
-    # NO PUBLICAR CALENDARIO VACÍO
-    # --------------------------------------------------------
-
-    if not unique:
-
-        print(
-            "\nSin eventos publicados "
-            "en el periodo consultado."
-        )
-
-        print(
-            "No se modifica calendario.ics."
-        )
-
-        return 0
-
-    # --------------------------------------------------------
-    # GENERAR ICS
-    # --------------------------------------------------------
-
-    calendar = build_calendar(
-        unique
+    save_calendar(
+        all_events
     )
-
-    Path(OUTPUT_FILE).write_bytes(
-        calendar.to_ical()
-    )
-
-    print(
-        f"\nCalendario generado: "
-        f"{OUTPUT_FILE}"
-    )
-
-    print(
-        f"Eventos: {len(unique)}"
-    )
-
-    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(
-        main()
-    )
+    main()
