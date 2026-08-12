@@ -62,16 +62,17 @@ def parse_time(text: str):
     return (int(m.group(1)), int(m.group(2))) if m else None
 
 
-def parse_detail(body: str):
+def parse_detail(body: str, category_hint=None):
     """
-    Extrae el nombre REAL de la sesión.
+    Obtiene el nombre real de la sesión.
 
-    Prioridad:
-    1. SESIÓN NUM. # ...
-    2. SESION NUM. # ... (sin acento)
-    3. Títulos específicos de sesión.
-    
-    Ignora las leyendas genéricas del calendario.
+    La categoría se determina preferentemente por la clase
+    del día en el calendario de la Gaceta:
+        sesple  -> Pleno
+        rsesple -> Pleno
+        sescom  -> Comisión
+
+    El texto se utiliza para obtener el nombre específico.
     """
 
     lines = [
@@ -81,78 +82,131 @@ def parse_detail(body: str):
     ]
 
     # ---------------------------------------------------------
-    # 1. PRIORIDAD ABSOLUTA: SESIÓN NUM. #
+    # Buscar primero una sesión numerada
     # ---------------------------------------------------------
-    session_patterns = [
-        re.compile(
-            r"^.*?SESI[ÓO]N\s+NUM\.?\s*#?\s*\d+.*$",
-            re.IGNORECASE
-        ),
-        re.compile(
-            r"^.*?SESI[ÓO]N\s+N[ÚU]M\.?\s*#?\s*\d+.*$",
-            re.IGNORECASE
-        ),
+
+    numbered = []
+
+    for line in lines:
+        upper = line.upper()
+
+        if (
+            ("SESIÓN" in upper or "SESION" in upper)
+            and (
+                "NUM." in upper
+                or "NÚM." in upper
+                or "NUM " in upper
+                or "NÚM " in upper
+            )
+        ):
+            numbered.append(line)
+
+    # ---------------------------------------------------------
+    # Eliminar leyendas genéricas
+    # ---------------------------------------------------------
+
+    generic = (
+        "SESIÓN DE PLENO DEL CONGRESO",
+        "SESION DE PLENO DEL CONGRESO",
+        "REANUDACIÓN SESIÓN DE PLENO DEL CONGRESO",
+        "REANUDACION SESION DE PLENO DEL CONGRESO",
+        "SESIÓN DE COMISIÓN/COMITÉ",
+        "SESION DE COMISION/COMITE",
+        "EVENTO DE COMISIÓN/COMITÉ",
+        "EVENTO DE COMISION/COMITE",
+    )
+
+    numbered = [
+        line
+        for line in numbered
+        if line.upper().strip() not in generic
     ]
 
-    for line in lines:
-        for pattern in session_patterns:
-            if pattern.search(line):
-                # Evitar textos que sean solamente una leyenda
-                upper = line.upper()
+    # ---------------------------------------------------------
+    # Elegir según la categoría que conocemos por el calendario
+    # ---------------------------------------------------------
 
+    if numbered:
+
+        if category_hint == "Pleno":
+
+            pleno = [
+                line
+                for line in numbered
                 if (
-                    "SESIÓN DE PLENO DEL CONGRESO" == upper
-                    or "SESION DE PLENO DEL CONGRESO" == upper
-                    or "SESIÓN DE COMISIÓN/COMITÉ" == upper
-                    or "SESION DE COMISION/COMITE" == upper
+                    "PLENO" in line.upper()
+                    or "SESION NUM" in line.upper()
+                    or "SESIÓN NUM" in line.upper()
+                )
+            ]
+
+            if pleno:
+                return pleno[0], parse_time(pleno[0])
+
+        if category_hint == "Comisión":
+
+            commission = [
+                line
+                for line in numbered
+                if (
+                    "COMISIÓN" in line.upper()
+                    or "COMISION" in line.upper()
+                    or "SALUD" in line.upper()
+                    or "HIGIENE" in line.upper()
+                    or "ADICCIONES" in line.upper()
+                )
+            ]
+
+            if commission:
+                return commission[0], parse_time(commission[0])
+
+        # Si la categoría no permitió filtrar,
+        # devolvemos la primera sesión numerada.
+        return numbered[0], parse_time(numbered[0])
+
+    # ---------------------------------------------------------
+    # Segundo intento:
+    # líneas que contienen SESIÓN pero no necesariamente NUM.
+    # ---------------------------------------------------------
+
+    candidates = []
+
+    for line in lines:
+
+        upper = line.upper()
+
+        if "SESIÓN" not in upper and "SESION" not in upper:
+            continue
+
+        if upper.strip() in generic:
+            continue
+
+        candidates.append(line)
+
+    if candidates:
+
+        if category_hint == "Pleno":
+
+            for line in candidates:
+                if (
+                    "PLENO" in line.upper()
+                    or "SESIÓN" in line.upper()
+                    or "SESION" in line.upper()
                 ):
-                    continue
+                    return line, parse_time(line)
 
-                return line, parse_time(line)
+        if category_hint == "Comisión":
 
-    # ---------------------------------------------------------
-    # 2. Buscar títulos específicos de PLENO
-    # ---------------------------------------------------------
-    for line in lines:
-        upper = line.upper()
+            for line in candidates:
+                if (
+                    "COMISIÓN" in line.upper()
+                    or "COMISION" in line.upper()
+                    or "SALUD" in line.upper()
+                    or "HIGIENE" in line.upper()
+                    or "ADICCIONES" in line.upper()
+                ):
+                    return line, parse_time(line)
 
-        if "PLENO" not in upper:
-            continue
-
-        if any(generic in upper for generic in (
-            "SESIÓN DE PLENO DEL CONGRESO",
-            "SESION DE PLENO DEL CONGRESO",
-            "REANUDACIÓN SESIÓN DE PLENO",
-            "REANUDACION SESION DE PLENO",
-        )):
-            continue
-
-        if "SESIÓN" in upper or "SESION" in upper:
-            return line, parse_time(line)
-
-    # ---------------------------------------------------------
-    # 3. Buscar títulos específicos de COMISIÓN
-    # ---------------------------------------------------------
-    for line in lines:
-        upper = line.upper()
-
-        if "COMISIÓN" not in upper and "COMISION" not in upper:
-            continue
-
-        if any(generic in upper for generic in (
-            "SESIÓN DE COMISIÓN/COMITÉ",
-            "SESION DE COMISION/COMITE",
-            "EVENTO DE COMISIÓN/COMITÉ",
-            "EVENTO DE COMISION/COMITE",
-        )):
-            continue
-
-        if "SALUD" in upper or "HIGIENE" in upper or "ADICCIONES" in upper:
-            return line, parse_time(line)
-
-    # ---------------------------------------------------------
-    # 4. Si no encontró título específico, no usar la leyenda
-    # ---------------------------------------------------------
     return None, None
 
 def get_gaceta_events():
