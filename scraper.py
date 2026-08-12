@@ -45,14 +45,31 @@ def normalize(text: str) -> str:
 def classify(title: str) -> str | None:
     text = normalize(title).casefold()
 
+    # Respaldo: cualquier texto que contenga "pleno" es Pleno.
+    if "pleno" in text:
+        return "Pleno"
+
+    # Respaldo: cualquier texto que contenga "salud" es Comisión.
+    if "salud" in text:
+        return (
+            "Comisión de Higiene, Salud Pública "
+            "y Prevención de las Adicciones"
+        )
+
     if any(p.casefold() in text for p in PLENO_PATTERNS):
         return "Pleno"
 
     if any(p.casefold() in text for p in COMMISSION_PATTERNS):
-        return "Comisión de Higiene, Salud y Prevención de las Adicciones"
+        return (
+            "Comisión de Higiene, Salud Pública "
+            "y Prevención de las Adicciones"
+        )
 
-    if "higiene" in text and "salud" in text and "adicciones" in text:
-        return "Comisión de Higiene, Salud y Prevención de las Adicciones"
+    if "higiene" in text or "adicciones" in text:
+        return (
+            "Comisión de Higiene, Salud Pública "
+            "y Prevención de las Adicciones"
+        )
 
     return None
 
@@ -62,50 +79,12 @@ def parse_time(text: str):
     return (int(m.group(1)), int(m.group(2))) if m else None
 
 
-def parse_detail(body: str, category_hint=None):
-    """
-    Obtiene el nombre real de la sesión.
+def parse_detail(body: str, category_hint: str | None = None):
+    """Obtiene el nombre real de la sesión, evitando leyendas genéricas."""
 
-    La categoría se determina preferentemente por la clase
-    del día en el calendario de la Gaceta:
-        sesple  -> Pleno
-        rsesple -> Pleno
-        sescom  -> Comisión
+    lines = [normalize(x) for x in body.splitlines() if normalize(x)]
 
-    El texto se utiliza para obtener el nombre específico.
-    """
-
-    lines = [
-        normalize(x)
-        for x in body.splitlines()
-        if normalize(x)
-    ]
-
-    # ---------------------------------------------------------
-    # Buscar primero una sesión numerada
-    # ---------------------------------------------------------
-
-    numbered = []
-
-    for line in lines:
-        upper = line.upper()
-
-        if (
-            ("SESIÓN" in upper or "SESION" in upper)
-            and (
-                "NUM." in upper
-                or "NÚM." in upper
-                or "NUM " in upper
-                or "NÚM " in upper
-            )
-        ):
-            numbered.append(line)
-
-    # ---------------------------------------------------------
-    # Eliminar leyendas genéricas
-    # ---------------------------------------------------------
-
-    generic = (
+    generic = {
         "SESIÓN DE PLENO DEL CONGRESO",
         "SESION DE PLENO DEL CONGRESO",
         "REANUDACIÓN SESIÓN DE PLENO DEL CONGRESO",
@@ -114,98 +93,65 @@ def parse_detail(body: str, category_hint=None):
         "SESION DE COMISION/COMITE",
         "EVENTO DE COMISIÓN/COMITÉ",
         "EVENTO DE COMISION/COMITE",
-    )
+    }
 
-    numbered = [
-        line
-        for line in numbered
-        if line.upper().strip() not in generic
-    ]
-
-    # ---------------------------------------------------------
-    # Elegir según la categoría que conocemos por el calendario
-    # ---------------------------------------------------------
+    # 1) Primero buscar una sesión numerada real.
+    numbered = []
+    for line in lines:
+        upper = line.upper()
+        if not ("SESIÓN" in upper or "SESION" in upper):
+            continue
+        if not re.search(r"\b(?:N[ÚU]M\.?|NUM\.?)\s*\d+", upper):
+            continue
+        if upper.strip() in generic:
+            continue
+        numbered.append(line)
 
     if numbered:
-
         if category_hint == "Pleno":
-
-            pleno = [
-                line
-                for line in numbered
-                if (
-                    "PLENO" in line.upper()
-                    or "SESION NUM" in line.upper()
-                    or "SESIÓN NUM" in line.upper()
-                )
-            ]
-
-            if pleno:
-                return pleno[0], parse_time(pleno[0])
-
+            for line in numbered:
+                if "PLENO" in line.upper():
+                    return line, parse_time(line)
         if category_hint == "Comisión":
-
-            commission = [
-                line
-                for line in numbered
+            for line in numbered:
+                upper = line.upper()
                 if (
-                    "COMISIÓN" in line.upper()
-                    or "COMISION" in line.upper()
-                    or "SALUD" in line.upper()
-                    or "HIGIENE" in line.upper()
-                    or "ADICCIONES" in line.upper()
-                )
-            ]
-
-            if commission:
-                return commission[0], parse_time(commission[0])
-
-        # Si la categoría no permitió filtrar,
-        # devolvemos la primera sesión numerada.
+                    "COMISIÓN" in upper
+                    or "COMISION" in upper
+                    or "SALUD" in upper
+                    or "HIGIENE" in upper
+                    or "ADICCIONES" in upper
+                ):
+                    return line, parse_time(line)
         return numbered[0], parse_time(numbered[0])
 
-    # ---------------------------------------------------------
-    # Segundo intento:
-    # líneas que contienen SESIÓN pero no necesariamente NUM.
-    # ---------------------------------------------------------
-
-    candidates = []
-
+    # 2) Si no hay número, buscar título específico según la clase.
     for line in lines:
-
         upper = line.upper()
-
+        if upper.strip() in generic:
+            continue
         if "SESIÓN" not in upper and "SESION" not in upper:
             continue
 
+        if category_hint == "Pleno" and "PLENO" in upper:
+            return line, parse_time(line)
+
+        if category_hint == "Comisión" and (
+            "COMISIÓN" in upper
+            or "COMISION" in upper
+            or "SALUD" in upper
+            or "HIGIENE" in upper
+            or "ADICCIONES" in upper
+        ):
+            return line, parse_time(line)
+
+    # 3) Último respaldo: cualquier sesión no genérica.
+    for line in lines:
+        upper = line.upper()
         if upper.strip() in generic:
             continue
-
-        candidates.append(line)
-
-    if candidates:
-
-        if category_hint == "Pleno":
-
-            for line in candidates:
-                if (
-                    "PLENO" in line.upper()
-                    or "SESIÓN" in line.upper()
-                    or "SESION" in line.upper()
-                ):
-                    return line, parse_time(line)
-
-        if category_hint == "Comisión":
-
-            for line in candidates:
-                if (
-                    "COMISIÓN" in line.upper()
-                    or "COMISION" in line.upper()
-                    or "SALUD" in line.upper()
-                    or "HIGIENE" in line.upper()
-                    or "ADICCIONES" in line.upper()
-                ):
-                    return line, parse_time(line)
+        if "SESIÓN" in upper or "SESION" in upper:
+            return line, parse_time(line)
 
     return None, None
 
@@ -278,7 +224,9 @@ def get_gaceta_events():
                 page.wait_for_timeout(350)
 
                 body = page.locator("body").inner_text(timeout=10000)
-                                if "sesple" in cls or "rsesple" in cls:
+
+                # La clase del día es la fuente principal de la categoría.
+                if "sesple" in cls or "rsesple" in cls:
                     category_hint = "Pleno"
                 elif "sescom" in cls:
                     category_hint = "Comisión"
@@ -296,19 +244,31 @@ def get_gaceta_events():
 
                 if category_hint == "Pleno":
                     category = "Pleno"
-
                 elif category_hint == "Comisión":
                     category = (
                         "Comisión de Higiene, Salud Pública "
                         "y Prevención de las Adicciones"
                     )
-
                 else:
                     category = classify(title)
 
                 if category is None:
                     print(f"    -> ignorado: {title}")
                     continue
+
+                start = datetime(
+                    year,
+                    month + 1,
+                    day,
+                    *(time_value or (0, 0)),
+                    tzinfo=TZ,
+                )
+
+                end = start + (
+                    timedelta(hours=1)
+                    if time_value
+                    else timedelta(days=1)
+                )
 
                 events.append({
                     "title": title,
