@@ -5,36 +5,10 @@ CALSCALE:GREGORIAN
 X-WR-CALNAME:Congreso de Jalisco
 X-WR-TIMEZONE:America/Mexico_City
 BEGIN:VEVENT
-SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
- GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
- ONGRESO Y COMISIÓN/COMITÉ
-DTSTART;VALUE=DATE:20260706
-DTEND;VALUE=DATE:20260707
-UID:957d6a1ad5dfc6e82a449fc564f849aef6ee8967@congreso-jalisco
-CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
- ciones
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:12:00 - SESIÓN NUM. 21 DE COMISIÓN DE GANADERÍA\, AGRICULTURA Y
-  DESARROLLO RURAL.\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260708T120000
-DTEND;TZID=America/Mexico_City:20260708T130000
-UID:4638d3c37f4f6f6f8192f25cc7523222d2b013fc@congreso-jalisco
-CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
- ciones
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:11:00 - SESIÓN NUM. 27 DE COMISIÓN DE EDUCACIÓN\, CULTURA\, DEP
- ORTE Y JUVENTUD\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260709T110000
-DTEND;TZID=America/Mexico_City:20260709T120000
-UID:aa66d2f29110d847e1bdf2d11d016b4a23aa7d8f@congreso-jalisco
+SUMMARY:09:00 - SESIÓN NUM.87 DEL PLENO DEL CONGRESO\, SOLEMNE
+DTSTART;TZID=America/Mexico_City:20260709T090000
+DTEND;TZID=America/Mexico_City:20260709T100000
+UID:31a21d226e3f40bc9a7d0debc1befb1526fdbbe2@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
  aria.\nFuente: https://gaceta.congresojal.gob.mx
@@ -44,18 +18,18 @@ BEGIN:VEVENT
 SUMMARY:11:00 - SESIÓN NUM.89 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
 DTSTART;TZID=America/Mexico_City:20260715T110000
 DTEND;TZID=America/Mexico_City:20260715T120000
-UID:2f9be49a1d367fac46bb1e725c70a79840e8f0a3@congreso-jalisco
+UID:1ed3be0700a58d0025f4a4ef10e490b60aacaab6@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
  aria.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:10:00 - SESIÓN NUM. 24 DE COMISIÓN DE PLANEACIÓN\, ORDENAMIENTO
-  TERRITORIAL Y DE LA GESTIÓN DEL AGUA\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260716T100000
-DTEND;TZID=America/Mexico_City:20260716T110000
-UID:6c4d74a6138d703406712c0c37448dad713bc88b@congreso-jalisco
+SUMMARY:15:00 - SESIÓN NUM. 17 DE COMISIÓN DE HIGIENE\, SALUD PÚBLICA Y
+  PREVENCIÓN DE LAS ADICCIONES\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20260717T150000
+DTEND;TZID=America/Mexico_City:20260717T160000
+UID:b91d93b349de5e5818bb3aad2bf0afb1e97c4747@congreso-jalisco
 CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
  ciones
 DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
@@ -63,24 +37,11 @@ DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:10:00 - SESIÓN NUM. 22 DE COMISIÓN DE DERECHOS HUMANOS Y PUEBLOS
-  ORIGINARIOS\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260717T100000
-DTEND;TZID=America/Mexico_City:20260717T110000
-UID:85dbd954bf014a8c03efc4bebe74d6946b3bffcb@congreso-jalisco
-CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
- ciones
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:10:00 - SESIÓN NUM. 20 DE COMISIÓN ESPECIAL PARA ATENDER ASUNTOS
-  RELACIONADOS EN MATERIA DE DESAPARICIÓN DE PERSONAS EN JALISCO.\, ORDINA
- RIA
-DTSTART;TZID=America/Mexico_City:20260720T100000
-DTEND;TZID=America/Mexico_City:20260720T110000
-UID:b436f05e679a24edf44a1e2ce246a900d69638fc@congreso-jalisco
+SUMMARY:15:00 - SESIÓN NUM. 17 DE COMISIÓN DE HIGIENE\, SALUD PÚBLICA Y
+  PREVENCIÓN DE LAS ADICCIONES\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20260720T150000
+DTEND;TZID=America/Mexico_City:20260720T160000
+UID:267a67adaa45018f49d8cb292bbd8d805a919a35@congreso-jalisco
 CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
  ciones
 DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
@@ -91,44 +52,8 @@ BEGIN:VEVENT
 SUMMARY:09:00 - SESIÓN NUM.90 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
 DTSTART;TZID=America/Mexico_City:20260721T090000
 DTEND;TZID=America/Mexico_City:20260721T100000
-UID:32436ed2b1f0cdf50f4f3ab5edc64ccca8004e57@congreso-jalisco
+UID:8ee4c3a47800d13a909920cefb1411e4ec0f2cd0@congreso-jalisco
 CATEGORIES:Pleno
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:10:00 - SESIÓN NUM. 18 DE COMISIÓN DE ASISTENCIA SOCIAL\, FAMILI
- A Y NIÑEZ\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260722T100000
-DTEND;TZID=America/Mexico_City:20260722T110000
-UID:975e7bb24605c879650d455164defa74d51c6bed@congreso-jalisco
-CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
- ciones
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:11:00 - SESIÓN NUM. 20 DE COMISIÓN DE MEDIO AMBIENTE\, SOSTENIBI
- LIDAD\, PROTECCIÓN CIVIL Y RESILIENCIA\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260723T110000
-DTEND;TZID=America/Mexico_City:20260723T120000
-UID:c95b9b8bdef4d5dfdc19b6d3b6e3a6d3e6f603b4@congreso-jalisco
-CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
- ciones
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:11:00 - SESIÓN NUM. 20 DE COMISIÓN DE MEDIO AMBIENTE\, SOSTENIBI
- LIDAD\, PROTECCIÓN CIVIL Y RESILIENCIA\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260724T110000
-DTEND;TZID=America/Mexico_City:20260724T120000
-UID:80adf4929515e97061413b19a0d227eeb15aad8b@congreso-jalisco
-CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
- ciones
 DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
  aria.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
@@ -137,7 +62,7 @@ BEGIN:VEVENT
 SUMMARY:SESIÓN NUM.91 DEL PLENO DEL CONGRESO\, ORDINARIA
 DTSTART;VALUE=DATE:20260813
 DTEND;VALUE=DATE:20260814
-UID:bf8c1c32b588dfaa8c13aa7ff37b23e91bb9445c@congreso-jalisco
+UID:43a3900f079872be160b410785e48cb1647be0ce@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
  aria.\nFuente: https://gaceta.congresojal.gob.mx
