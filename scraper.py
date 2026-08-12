@@ -63,30 +63,97 @@ def parse_time(text: str):
 
 
 def parse_detail(body: str):
-    lines = [normalize(x) for x in body.splitlines() if normalize(x)]
+    """
+    Extrae el nombre REAL de la sesión.
 
-    title = None
+    Prioridad:
+    1. SESIÓN NUM. # ...
+    2. SESION NUM. # ... (sin acento)
+    3. Títulos específicos de sesión.
+    
+    Ignora las leyendas genéricas del calendario.
+    """
+
+    lines = [
+        normalize(x)
+        for x in body.splitlines()
+        if normalize(x)
+    ]
+
+    # ---------------------------------------------------------
+    # 1. PRIORIDAD ABSOLUTA: SESIÓN NUM. #
+    # ---------------------------------------------------------
+    session_patterns = [
+        re.compile(
+            r"^.*?SESI[ÓO]N\s+NUM\.?\s*#?\s*\d+.*$",
+            re.IGNORECASE
+        ),
+        re.compile(
+            r"^.*?SESI[ÓO]N\s+N[ÚU]M\.?\s*#?\s*\d+.*$",
+            re.IGNORECASE
+        ),
+    ]
+
     for line in lines:
-        u = line.upper()
-        if ("SESION" in u or "SESIÓN" in u) and (
-            "PLENO" in u or "COMISION" in u or "COMISIÓN" in u
-        ):
-            if u not in {
-                "SESIÓN DE PLENO DEL CONGRESO",
-                "SESION DE PLENO DEL CONGRESO",
-                "SESIÓN DE COMISIÓN/COMITÉ",
-                "SESION DE COMISION/COMITE",
-            }:
-                title = line
-                break
+        for pattern in session_patterns:
+            if pattern.search(line):
+                # Evitar textos que sean solamente una leyenda
+                upper = line.upper()
 
-    if not title:
-        return None, None
+                if (
+                    "SESIÓN DE PLENO DEL CONGRESO" == upper
+                    or "SESION DE PLENO DEL CONGRESO" == upper
+                    or "SESIÓN DE COMISIÓN/COMITÉ" == upper
+                    or "SESION DE COMISION/COMITE" == upper
+                ):
+                    continue
 
-    pos = body.upper().find(title.upper())
-    nearby = body[max(0, pos - 500):pos + len(title) + 1000] if pos >= 0 else body
-    return title, parse_time(nearby)
+                return line, parse_time(line)
 
+    # ---------------------------------------------------------
+    # 2. Buscar títulos específicos de PLENO
+    # ---------------------------------------------------------
+    for line in lines:
+        upper = line.upper()
+
+        if "PLENO" not in upper:
+            continue
+
+        if any(generic in upper for generic in (
+            "SESIÓN DE PLENO DEL CONGRESO",
+            "SESION DE PLENO DEL CONGRESO",
+            "REANUDACIÓN SESIÓN DE PLENO",
+            "REANUDACION SESION DE PLENO",
+        )):
+            continue
+
+        if "SESIÓN" in upper or "SESION" in upper:
+            return line, parse_time(line)
+
+    # ---------------------------------------------------------
+    # 3. Buscar títulos específicos de COMISIÓN
+    # ---------------------------------------------------------
+    for line in lines:
+        upper = line.upper()
+
+        if "COMISIÓN" not in upper and "COMISION" not in upper:
+            continue
+
+        if any(generic in upper for generic in (
+            "SESIÓN DE COMISIÓN/COMITÉ",
+            "SESION DE COMISION/COMITE",
+            "EVENTO DE COMISIÓN/COMITÉ",
+            "EVENTO DE COMISION/COMITE",
+        )):
+            continue
+
+        if "SALUD" in upper or "HIGIENE" in upper or "ADICCIONES" in upper:
+            return line, parse_time(line)
+
+    # ---------------------------------------------------------
+    # 4. Si no encontró título específico, no usar la leyenda
+    # ---------------------------------------------------------
+    return None, None
 
 def get_gaceta_events():
     events = []
