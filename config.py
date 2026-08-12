@@ -1,29 +1,87 @@
-BASE_URL = "https://www.congresojal.gob.mx"
-MONTH_URL = BASE_URL + "/agenda-parlamentaria/mes/{year:04d}-{month:02d}"
+# ============================================================
+# FUENTES OFICIALES
+# ============================================================
+
+# Gaceta Parlamentaria del Congreso de Jalisco
+GACETA_BASE_URL = "https://gaceta.congresojal.gob.mx"
+
+# Calendario oficial de sesiones 2026 LXIV
+GACETA_CALENDAR_URL = (
+    GACETA_BASE_URL
+    + "/documentos/Calendario%20Sesiones%202026%20LXIV.pdf"
+)
+
+# Agenda de Actividades del Congreso.
+# Se utiliza como fuente complementaria para obtener:
+# - hora
+# - nombre exacto de la sesión
+# - comisión
+# - ubicación
+# - enlace al evento
+AGENDA_BASE_URL = "https://www.congresojal.gob.mx"
+
+MONTH_URL = (
+    AGENDA_BASE_URL
+    + "/agenda-parlamentaria/mes/{year:04d}-{month:02d}"
+)
+
 OUTPUT_FILE = "calendario.ics"
+
 TIMEZONE = "America/Mexico_City"
 
-# La comisión aparece en la agenda con nombres abreviados como
-# "Comisión de Salud (TELEMATICA)", mientras que el sitio institucional
-# también la identifica como "Comisión de Higiene, Salud Pública y
-# Prevención de las Adicciones".
-COMMISSION_PATTERNS = (
-    "comisión de higiene y salud",
-    "comisión de higiene, salud",
-    "comisión de higiene salud",
-    "comisión de salud e higiene",
-    "comisión de salud",
-)
+# ============================================================
+# EVENTOS QUE NOS INTERESAN
+# ============================================================
 
 PLENO_PATTERNS = (
     "sesión ordinaria",
+    "sesion ordinaria",
     "sesión extraordinaria",
+    "sesion extraordinaria",
     "sesión solemne",
+    "sesion solemne",
 )
 
+COMMISSION_PATTERNS = (
+    "comisión de higiene y salud",
+    "comision de higiene y salud",
+
+    "comisión de higiene, salud",
+    "comision de higiene, salud",
+
+    "comisión de higiene salud",
+    "comision de higiene salud",
+
+    "comisión de salud e higiene",
+    "comision de salud e higiene",
+
+    "comisión de salud",
+    "comision de salud",
+
+    "comisión de higiene, salud pública",
+    "comision de higiene, salud publica",
+
+    "prevención de las adicciones",
+    "prevencion de las adicciones",
+)
+
+# ============================================================
+# CONFIGURACIÓN DEL SCRAPER
+# ============================================================
+
+# Comenzamos desde julio de 2026, que es donde quedó
+# establecido nuestro calendario.
+START_YEAR = 2026
+START_MONTH = 7
+
+# Revisar 12 meses hacia adelante.
 LOOK_AHEAD_MONTHS = 12
-REQUEST_TIMEOUT = 30
+
+REQUEST_TIMEOUT = 45
+
 USER_AGENT = (
-    "Mozilla/5.0 (compatible; Congreso-Jalisco-Calendar/2.0; "
-    "+https://github.com/)"
+    "Mozilla/5.0 "
+    "(compatible; Congreso-Jalisco-Calendar/3.0; "
+    "+https://github.com/antonioren777-collab/"
+    "Congreso-Jalisco-Calendar)"
 )
