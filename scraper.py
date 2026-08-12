@@ -278,50 +278,37 @@ def get_gaceta_events():
                 page.wait_for_timeout(350)
 
                 body = page.locator("body").inner_text(timeout=10000)
-                if "sesple" in cls or "rsesple" in cls:
-    category_hint = "Pleno"
-elif "sescom" in cls:
-    category_hint = "Comisión"
-else:
-    category_hint = None
+                                if "sesple" in cls or "rsesple" in cls:
+                    category_hint = "Pleno"
+                elif "sescom" in cls:
+                    category_hint = "Comisión"
+                else:
+                    category_hint = None
 
-title, time_value = parse_detail(
-    body,
-    category_hint,
-)
+                title, time_value = parse_detail(
+                    body,
+                    category_hint,
+                )
 
                 if not title:
                     print("    -> sin detalle de sesión")
                     continue
 
                 if category_hint == "Pleno":
-    category = "Pleno"
+                    category = "Pleno"
 
-elif category_hint == "Comisión":
-    category = (
-        "Comisión de Higiene, Salud Pública "
-        "y Prevención de las Adicciones"
-    )
+                elif category_hint == "Comisión":
+                    category = (
+                        "Comisión de Higiene, Salud Pública "
+                        "y Prevención de las Adicciones"
+                    )
 
-else:
-    category = classify(title)
+                else:
+                    category = classify(title)
+
                 if category is None:
                     print(f"    -> ignorado: {title}")
                     continue
-
-                start = datetime(
-                    year,
-                    month + 1,
-                    day,
-                    *(time_value or (0, 0)),
-                    tzinfo=TZ,
-                )
-
-                end = start + (
-                    timedelta(hours=1)
-                    if time_value
-                    else timedelta(days=1)
-                )
 
                 events.append({
                     "title": title,
