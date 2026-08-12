@@ -1,65 +1,32 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//Congreso de Jalisco Calendar//ES//
+PRODID:-//Congreso Jalisco Calendar//ES//
 CALSCALE:GREGORIAN
-METHOD:PUBLISH
 X-WR-CALNAME:Congreso de Jalisco
-REFRESH-INTERVAL;VALUE=DURATION:PT12H
-X-PUBLISHED-TTL:PT12H
 X-WR-TIMEZONE:America/Mexico_City
 BEGIN:VEVENT
 SUMMARY:Sesión Solemne
 DTSTART;TZID=America/Mexico_City:20260709T090000
 DTEND;TZID=America/Mexico_City:20260709T100000
-DTSTAMP:20260812T014955Z
-UID:f0f8f1caf251646e107507cb@congreso-jalisco-calendar
+UID:32b77cf75f94dd7e6780d706fa5cadf22805dc69@congreso-jalisco-calendar
 CATEGORIES:Pleno
 DESCRIPTION:Diputada Alondra Getsemany Fausto de León\, presidenta de la 
- Mesa Directiva\n\nFuente oficial:\nhttps://www.congresojal.gob.mx/agenda/s
- esi-n-solemne-22
+ Mesa Directiva\nFuente: Agenda Parlamentaria\nEnlace: https://www.congreso
+ jal.gob.mx/agenda/sesi-n-solemne-22
 LOCATION:Recinto Legislativo
 URL:https://www.congresojal.gob.mx/agenda/sesi-n-solemne-22
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Sesión Extraordinaria
-DTSTART;TZID=America/Mexico_City:20260715T000000
-DTEND;TZID=America/Mexico_City:20260716T000000
-DTSTAMP:20260812T014955Z
-UID:e2a1829716db8fe894435570@congreso-jalisco-calendar
-CATEGORIES:Pleno
-DESCRIPTION:Sesión extraordinaria del Pleno identificada en información 
- oficial del Congreso de Jalisco.\n\nFuente oficial:\nhttps://www.congresoj
- al.gob.mx/boletines/diputados-avalan-reforma-al-n-mero-de-regidur-en-los-m
- unicipios-de-jalisco
-URL:https://www.congresojal.gob.mx/boletines/diputados-avalan-reforma-al-n
- -mero-de-regidur-en-los-municipios-de-jalisco
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Comisión de Salud (TELEMATICA)
 DTSTART;TZID=America/Mexico_City:20260717T150000
 DTEND;TZID=America/Mexico_City:20260717T160000
-DTSTAMP:20260812T014955Z
-UID:b0e49c65cc47c4ab04d07e92@congreso-jalisco-calendar
+UID:43417a597b7b0e4051ec041bf918ed1f87b595ae@congreso-jalisco-calendar
 CATEGORIES:Comisión de Higiene\, Salud y Prevención de las Adicciones
-DESCRIPTION:Diputada presidenta Mónica Paola Magaña Mendoza\n\nFuente of
- icial:\nhttps://www.congresojal.gob.mx/agenda/comisi-n-de-salud-telematica
- -0
+DESCRIPTION:Diputada presidenta Mónica Paola Magaña Mendoza\nFuente: Age
+ nda Parlamentaria\nEnlace: https://www.congresojal.gob.mx/agenda/comisi-n-
+ de-salud-telematica-0
 LOCATION:A través del Canal Parlamento 17.3 (televisión abierta) y por l
  as redes sociales de Facebook y Twitter
 URL:https://www.congresojal.gob.mx/agenda/comisi-n-de-salud-telematica-0
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Sesión Extraordinaria
-DTSTART;TZID=America/Mexico_City:20260721T000000
-DTEND;TZID=America/Mexico_City:20260722T000000
-DTSTAMP:20260812T014955Z
-UID:6e021d352398e60257065d6a@congreso-jalisco-calendar
-CATEGORIES:Pleno
-DESCRIPTION:Sesión extraordinaria del Pleno identificada en información 
- oficial del Congreso de Jalisco.\n\nFuente oficial:\nhttps://www.congresoj
- al.gob.mx/boletines/avalan-beneficios-para-la-regularizaci-n-de-adeudos-de
- l-siapa
-URL:https://www.congresojal.gob.mx/boletines/avalan-beneficios-para-la-reg
- ularizaci-n-de-adeudos-del-siapa
 END:VEVENT
 END:VCALENDAR
