@@ -4,29 +4,4 @@ PRODID:-//Congreso Jalisco Calendar//ES//
 CALSCALE:GREGORIAN
 X-WR-CALNAME:Congreso de Jalisco
 X-WR-TIMEZONE:America/Mexico_City
-BEGIN:VEVENT
-SUMMARY:Sesión Solemne
-DTSTART;TZID=America/Mexico_City:20260709T090000
-DTEND;TZID=America/Mexico_City:20260709T100000
-UID:32b77cf75f94dd7e6780d706fa5cadf22805dc69@congreso-jalisco-calendar
-CATEGORIES:Pleno
-DESCRIPTION:Diputada Alondra Getsemany Fausto de León\, presidenta de la 
- Mesa Directiva\nFuente: Agenda Parlamentaria\nEnlace: https://www.congreso
- jal.gob.mx/agenda/sesi-n-solemne-22
-LOCATION:Recinto Legislativo
-URL:https://www.congresojal.gob.mx/agenda/sesi-n-solemne-22
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Comisión de Salud (TELEMATICA)
-DTSTART;TZID=America/Mexico_City:20260717T150000
-DTEND;TZID=America/Mexico_City:20260717T160000
-UID:43417a597b7b0e4051ec041bf918ed1f87b595ae@congreso-jalisco-calendar
-CATEGORIES:Comisión de Higiene\, Salud y Prevención de las Adicciones
-DESCRIPTION:Diputada presidenta Mónica Paola Magaña Mendoza\nFuente: Age
- nda Parlamentaria\nEnlace: https://www.congresojal.gob.mx/agenda/comisi-n-
- de-salud-telematica-0
-LOCATION:A través del Canal Parlamento 17.3 (televisión abierta) y por l
- as redes sociales de Facebook y Twitter
-URL:https://www.congresojal.gob.mx/agenda/comisi-n-de-salud-telematica-0
-END:VEVENT
 END:VCALENDAR
