@@ -294,7 +294,17 @@ title, time_value = parse_detail(
                     print("    -> sin detalle de sesión")
                     continue
 
-                category = classify(title)
+                if category_hint == "Pleno":
+    category = "Pleno"
+
+elif category_hint == "Comisión":
+    category = (
+        "Comisión de Higiene, Salud Pública "
+        "y Prevención de las Adicciones"
+    )
+
+else:
+    category = classify(title)
                 if category is None:
                     print(f"    -> ignorado: {title}")
                     continue
