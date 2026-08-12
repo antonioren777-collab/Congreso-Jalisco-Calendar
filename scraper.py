@@ -10,7 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 from dateutil.relativedelta import relativedelta
 from icalendar import Calendar, Event
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import sync_playwright
 from zoneinfo import ZoneInfo
 
 from config import (
@@ -31,303 +31,723 @@ from config import (
 TZ = ZoneInfo(TIMEZONE)
 
 MONTHS = {
-    "enero": 1, "ene": 1, "febrero": 2, "feb": 2,
-    "marzo": 3, "mar": 3, "abril": 4, "abr": 4,
-    "mayo": 5, "may": 5, "junio": 6, "jun": 6,
-    "julio": 7, "jul": 7, "agosto": 8, "ago": 8,
-    "septiembre": 9, "sept": 9, "sep": 9, "setiembre": 9,
-    "octubre": 10, "oct": 10, "noviembre": 11, "nov": 11,
-    "diciembre": 12, "dic": 12,
+    "enero": 1,
+    "febrero": 2,
+    "marzo": 3,
+    "abril": 4,
+    "mayo": 5,
+    "junio": 6,
+    "julio": 7,
+    "agosto": 8,
+    "septiembre": 9,
+    "octubre": 10,
+    "noviembre": 11,
+    "diciembre": 12,
 }
 
+
+# ============================================================
+# UTILIDADES
+# ============================================================
 
 def normalize(text: str) -> str:
     text = (text or "").replace("\xa0", " ")
     return re.sub(r"\s+", " ", text).strip()
 
 
-def classify(title: str) -> str | None:
-    t = normalize(title).casefold()
+def normalize_key(text: str) -> str:
+    return normalize(text).casefold()
 
-    if any(p.casefold() in t for p in PLENO_PATTERNS):
+
+def classify(title: str) -> str | None:
+    text = normalize_key(title)
+
+    if any(
+        pattern.casefold() in text
+        for pattern in PLENO_PATTERNS
+    ):
         return "Pleno"
 
-    if any(p.casefold() in t for p in COMMISSION_PATTERNS):
-        return "Comisión de Higiene, Salud y Prevención de las Adicciones"
+    if any(
+        pattern.casefold() in text
+        for pattern in COMMISSION_PATTERNS
+    ):
+        return (
+            "Comisión de Higiene, Salud y "
+            "Prevención de las Adicciones"
+        )
 
-    # La Gaceta puede mostrar "HIGIENE, SALUD..." sin "comisión".
-    if "higiene" in t and "adicciones" in t:
-        return "Comisión de Higiene, Salud y Prevención de las Adicciones"
+    # Variante que puede aparecer en la Gaceta
+    # sin la palabra "comisión".
+    if (
+        "higiene" in text
+        and "salud" in text
+        and "adicciones" in text
+    ):
+        return (
+            "Comisión de Higiene, Salud y "
+            "Prevención de las Adicciones"
+        )
 
     return None
 
 
-def parse_time(text: str) -> tuple[int, int] | None:
-    m = re.search(r"\b([01]?\d|2[0-3]):([0-5]\d)\b", text)
-    if not m:
-        return None
-    return int(m.group(1)), int(m.group(2))
-
-
-def make_datetime(y: int, m: int, d: int, time_text: str | None = None) -> datetime:
-    if time_text:
-        hm = parse_time(time_text)
-    else:
-        hm = None
-    hour, minute = hm if hm else (0, 0)
-    return datetime(y, m, d, hour, minute, tzinfo=TZ)
-
-
-def month_from_label(label: str) -> tuple[int, int] | None:
-    m = re.search(
-        r"(enero|febrero|marzo|abril|mayo|junio|julio|agosto|"
-        r"septiembre|octubre|noviembre|diciembre)\s+(\d{4})",
-        label.casefold(),
+def parse_time(text: str):
+    match = re.search(
+        r"\b([01]?\d|2[0-3]):([0-5]\d)\b",
+        text or "",
     )
-    if not m:
+
+    if not match:
         return None
-    return MONTHS[m.group(1)], int(m.group(2))
+
+    return (
+        int(match.group(1)),
+        int(match.group(2)),
+    )
 
 
-def is_colored(rgb: str) -> bool:
-    """Detecta celdas marcadas del calendario sin depender de clases CSS."""
-    m = re.match(r"rgba?\((\d+),\s*(\d+),\s*(\d+)", rgb or "")
-    if not m:
-        return False
-    r, g, b = map(int, m.groups())
-    # Blanco/gris muy claro = día sin evento.
-    luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
-    return luminance < 0.88
+def event_datetime(
+    year: int,
+    month: int,
+    day: int,
+    time_value=None,
+):
+    if time_value:
+        hour, minute = time_value
+    else:
+        hour, minute = 0, 0
+
+    return datetime(
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        tzinfo=TZ,
+    )
 
 
-def extract_calendar_cells(page, month_label: str) -> list[dict]:
+# ============================================================
+# DETECCIÓN DEL CALENDARIO DE LA GACETA
+# ============================================================
+
+def inspect_interactive_calendar(page):
     """
-    Encuentra el bloque visual del mes y devuelve los días coloreados.
-    No depende de una clase CSS concreta: la Gaceta puede cambiar su HTML.
+    Inspecciona TODOS los elementos interactivos de la página.
+
+    No presupone:
+      - nombres de meses en HTML
+      - clases CSS concretas
+      - estructura concreta del calendario
+
+    Devuelve elementos que pueden representar días del calendario.
     """
+
     return page.evaluate(
         """
-        (label) => {
-          const norm = s => (s || '').replace(/\\s+/g, ' ').trim();
-          const heading = [...document.querySelectorAll('*')]
-            .find(el => norm(el.textContent) === label);
+        () => {
+            const norm = s =>
+                (s || '').replace(/\\s+/g, ' ').trim();
 
-          if (!heading) return [];
+            const elements = [
+                ...document.querySelectorAll(
+                    'a, area, button, [role="button"], ' +
+                    '[onclick], [data-date], [data-day], ' +
+                    '[data-fecha], [data-id]'
+                )
+            ];
 
-          let best = null;
-          let node = heading;
+            return elements.map((el, index) => {
 
-          for (let level = 0; level < 10 && node; level++, node = node.parentElement) {
-            const all = [...node.querySelectorAll('*')];
-            const nums = all.filter(el => {
-              const t = norm(el.textContent);
-              return /^([1-9]|[12]\\d|3[01])$/.test(t);
+                const r = el.getBoundingClientRect();
+                const cs = getComputedStyle(el);
+
+                return {
+                    index,
+                    tag: el.tagName,
+                    text: norm(el.innerText || el.textContent),
+                    title: el.getAttribute('title') || '',
+                    alt: el.getAttribute('alt') || '',
+                    aria: el.getAttribute('aria-label') || '',
+                    href: el.getAttribute('href') || '',
+                    onclick: el.getAttribute('onclick') || '',
+                    dataDate: el.getAttribute('data-date') || '',
+                    dataDay: el.getAttribute('data-day') || '',
+                    dataFecha: el.getAttribute('data-fecha') || '',
+                    dataId: el.getAttribute('data-id') || '',
+                    className: String(el.className || ''),
+                    background: cs.backgroundColor,
+                    color: cs.color,
+                    x: r.left + r.width / 2,
+                    y: r.top + r.height / 2,
+                    width: r.width,
+                    height: r.height
+                };
             });
-
-            if (nums.length >= 15) {
-              if (!best || nums.length < best.count || best.count < 15) {
-                best = { node, count: nums.length };
-              }
-            }
-          }
-
-          if (!best) return [];
-
-          const candidates = [...best.node.querySelectorAll('*')]
-            .filter(el => {
-              const t = norm(el.textContent);
-              if (!/^([1-9]|[12]\\d|3[01])$/.test(t)) return false;
-
-              // Preferir hojas o elementos que no contengan otro elemento
-              // con exactamente el mismo texto.
-              const same = [...el.children].some(c => norm(c.textContent) === t);
-              if (same) return false;
-
-              const r = el.getBoundingClientRect();
-              return r.width >= 8 && r.height >= 8;
-            });
-
-          return candidates.map(el => {
-            const r = el.getBoundingClientRect();
-            const cs = getComputedStyle(el);
-            return {
-              day: Number(norm(el.textContent)),
-              x: r.left + r.width / 2,
-              y: r.top + r.height / 2,
-              background: cs.backgroundColor,
-              color: cs.color,
-              cls: String(el.className || ''),
-              title: el.getAttribute('title') || '',
-              aria: el.getAttribute('aria-label') || ''
-            };
-          });
         }
-        """,
-        month_label,
+        """
     )
 
 
-def extract_detail_text(page) -> str:
-    return page.locator("body").inner_text(timeout=10000)
+def is_session_color(background: str) -> bool:
+    """
+    El calendario de la Gaceta utiliza colores para distinguir
+    tipos de sesión.
+
+    Se excluyen blancos/grises muy claros.
+    """
+
+    match = re.search(
+        r"rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)",
+        background or "",
+    )
+
+    if not match:
+        return False
+
+    r, g, b = map(
+        int,
+        match.groups(),
+    )
+
+    # Blanco / gris claro.
+    if r > 225 and g > 225 and b > 225:
+        return False
+
+    # Negro del texto, si aparece como fondo de un elemento
+    # muy pequeño, no se considera suficiente por sí solo.
+    if (
+        r < 30
+        and g < 30
+        and b < 30
+    ):
+        return False
+
+    return True
 
 
-def extract_event_title(body: str) -> str | None:
-    lines = [normalize(x) for x in body.splitlines() if normalize(x)]
+def extract_date_from_attributes(item: dict):
+    """
+    Intenta obtener una fecha de href, onclick, data-*,
+    title, aria-label, etc.
+    """
+
+    fields = [
+        item.get("dataDate", ""),
+        item.get("dataFecha", ""),
+        item.get("href", ""),
+        item.get("onclick", ""),
+        item.get("title", ""),
+        item.get("aria", ""),
+        item.get("alt", ""),
+        item.get("text", ""),
+    ]
+
+    combined = " ".join(
+        x for x in fields if x
+    )
+
+    # YYYY-MM-DD
+    match = re.search(
+        r"(20\d{2})[-/](\d{1,2})[-/](\d{1,2})",
+        combined,
+    )
+
+    if match:
+        try:
+            return date(
+                int(match.group(1)),
+                int(match.group(2)),
+                int(match.group(3)),
+            )
+        except ValueError:
+            pass
+
+    # DD/MM/YYYY
+    match = re.search(
+        r"\b(\d{1,2})[-/](\d{1,2})[-/](20\d{2})\b",
+        combined,
+    )
+
+    if match:
+        try:
+            return date(
+                int(match.group(3)),
+                int(match.group(2)),
+                int(match.group(1)),
+            )
+        except ValueError:
+            pass
+
+    # Fecha en español
+    month_pattern = (
+        "enero|febrero|marzo|abril|mayo|junio|"
+        "julio|agosto|septiembre|octubre|"
+        "noviembre|diciembre"
+    )
+
+    match = re.search(
+        rf"\b(\d{{1,2}})\s+de?\s*"
+        rf"({month_pattern})"
+        rf"(?:\s+de?\s*(20\d{{2}}))?\b",
+        combined,
+        flags=re.I,
+    )
+
+    if match:
+        day = int(match.group(1))
+        month = MONTHS[
+            match.group(2).casefold()
+        ]
+        year = (
+            int(match.group(3))
+            if match.group(3)
+            else START_YEAR
+        )
+
+        try:
+            return date(
+                year,
+                month,
+                day,
+            )
+        except ValueError:
+            pass
+
+    return None
+
+
+# ============================================================
+# TEXTO DEL DETALLE DE LA GACETA
+# ============================================================
+
+def find_session_title(text: str):
+    lines = [
+        normalize(line)
+        for line in text.splitlines()
+        if normalize(line)
+    ]
+
     candidates = []
 
     for line in lines:
-        upper = line.upper()
-        if "SESIÓN" not in upper and "SESION" not in upper:
-            continue
-        if "PLENO" in upper or "COMISIÓN" in upper or "COMISION" in upper:
-            if "SESIÓN DE PLENO DEL CONGRESO" == upper:
-                continue
-            if "SESIÓN DE COMISIÓN/COMITÉ" == upper:
-                continue
-            if "SESIÓN DE COMISION/COMITE" == upper:
-                continue
-            candidates.append(line)
 
-    if not candidates:
-        # Segunda forma: la Gaceta puede usar "SESIÓN NUM. 91..."
-        for line in lines:
-            upper = line.upper()
-            if ("SESION NUM" in upper or "SESIÓN NUM" in upper) and (
-                "PLENO" in upper or "COMIS" in upper
-            ):
-                candidates.append(line)
+        upper = line.upper()
+
+        if (
+            "SESIÓN" not in upper
+            and "SESION" not in upper
+        ):
+            continue
+
+        if (
+            "PLENO" not in upper
+            and "COMISIÓN" not in upper
+            and "COMISION" not in upper
+        ):
+            continue
+
+        # Ignorar solamente las leyendas genéricas.
+        generic = (
+            "SESIÓN DE PLENO DEL CONGRESO",
+            "SESION DE PLENO DEL CONGRESO",
+            "SESIÓN DE COMISIÓN/COMITÉ",
+            "SESION DE COMISION/COMITE",
+        )
+
+        if upper in generic:
+            continue
+
+        candidates.append(line)
 
     if not candidates:
         return None
 
-    return max(candidates, key=len)
+    # Preferimos la línea que contenga "NUM."
+    numbered = [
+        x for x in candidates
+        if (
+            "NUM." in x.upper()
+            or "NÚM." in x.upper()
+            or "NUM " in x.upper()
+        )
+    ]
+
+    if numbered:
+        return max(
+            numbered,
+            key=len,
+        )
+
+    return max(
+        candidates,
+        key=len,
+    )
 
 
-def get_gaceta_events() -> list[dict]:
+def get_current_page_text(page):
+    try:
+        return page.locator(
+            "body"
+        ).inner_text(
+            timeout=10000
+        )
+    except Exception:
+        return ""
+
+
+# ============================================================
+# GACETA
+# ============================================================
+
+def get_gaceta_events():
+
     events = []
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+    with sync_playwright() as playwright:
+
+        browser = playwright.chromium.launch(
+            headless=True
+        )
+
         page = browser.new_page(
-            viewport={"width": 1600, "height": 1200},
+            viewport={
+                "width": 1600,
+                "height": 1200,
+            },
             locale="es-MX",
         )
 
-        print("Abriendo Gaceta Parlamentaria...")
+        print(
+            "Abriendo Gaceta Parlamentaria..."
+        )
+
         page.goto(
             GACETA_BASE_URL,
-            wait_until="domcontentloaded",
+            wait_until="networkidle",
             timeout=60000,
         )
-        page.wait_for_timeout(2500)
 
-        # Intentamos mantener LXIV / Segundo Año Lectivo si la página
-        # presenta selects. Si ya vienen seleccionados, no hacemos nada.
-        for selector, wanted in [
-            ("select", "LXIV"),
-            ("select", "Segundo Año Lectivo"),
-        ]:
-            try:
-                selects = page.locator(selector)
-                count = selects.count()
-                for i in range(count):
-                    options = selects.nth(i).locator("option")
-                    labels = [
-                        normalize(options.nth(j).inner_text())
-                        for j in range(options.count())
-                    ]
-                    match = next(
-                        (j for j, label in enumerate(labels)
-                         if wanted.casefold() in label.casefold()),
-                        None,
-                    )
-                    if match is not None:
-                        value = options.nth(match).get_attribute("value")
-                        if value:
-                            selects.nth(i).select_option(value)
-                            page.wait_for_timeout(1200)
-                        break
-            except Exception:
-                pass
-
-        # La página muestra varios meses simultáneamente. Escaneamos todos
-        # los encabezados "Mes Año" visibles, no una lista fija de fechas.
-        labels = page.evaluate(
-            """
-            () => {
-              const months = [
-                'enero','febrero','marzo','abril','mayo','junio',
-                'julio','agosto','septiembre','octubre','noviembre','diciembre'
-              ];
-              const re = new RegExp(
-                '^(' + months.join('|') + ')\\\\s+20\\\\d{2}$',
-                'i'
-              );
-              const norm = s => (s || '').replace(/\\s+/g, ' ').trim();
-              return [...document.querySelectorAll('*')]
-                .map(el => norm(el.textContent))
-                .filter(t => re.test(t))
-                .filter((v, i, a) => a.indexOf(v) === i);
-            }
-            """
+        page.wait_for_timeout(
+            5000
         )
 
-        print("Meses detectados:", ", ".join(labels))
+        # ----------------------------------------------------
+        # Guardar HTML para diagnóstico si algo cambia.
+        # ----------------------------------------------------
 
-        for label in labels:
-            parsed = month_from_label(label)
-            if not parsed:
+        html = page.content()
+
+        Path(
+            "gaceta_debug.html"
+        ).write_text(
+            html,
+            encoding="utf-8",
+        )
+
+        # ----------------------------------------------------
+        # Selección de Legislatura.
+        # ----------------------------------------------------
+
+        try:
+
+            selects = page.locator(
+                "select"
+            )
+
+            for i in range(
+                selects.count()
+            ):
+
+                options = selects.nth(i).locator(
+                    "option"
+                )
+
+                for j in range(
+                    options.count()
+                ):
+
+                    text = normalize(
+                        options.nth(j).inner_text()
+                    )
+
+                    if text == "LXIV":
+
+                        value = (
+                            options.nth(j)
+                            .get_attribute(
+                                "value"
+                            )
+                        )
+
+                        if value:
+
+                            selects.nth(i).select_option(
+                                value
+                            )
+
+                            page.wait_for_timeout(
+                                2000
+                            )
+
+                        break
+
+        except Exception as exc:
+
+            print(
+                "Aviso selección LXIV:",
+                exc,
+            )
+
+        # ----------------------------------------------------
+        # Selección de periodo.
+        # ----------------------------------------------------
+
+        try:
+
+            selects = page.locator(
+                "select"
+            )
+
+            for i in range(
+                selects.count()
+            ):
+
+                options = selects.nth(i).locator(
+                    "option"
+                )
+
+                for j in range(
+                    options.count()
+                ):
+
+                    text = normalize(
+                        options.nth(j).inner_text()
+                    )
+
+                    if (
+                        "Segundo Año Lectivo"
+                        in text
+                    ):
+
+                        value = (
+                            options.nth(j)
+                            .get_attribute(
+                                "value"
+                            )
+                        )
+
+                        if value:
+
+                            selects.nth(i).select_option(
+                                value
+                            )
+
+                            page.wait_for_timeout(
+                                2500
+                            )
+
+                        break
+
+        except Exception as exc:
+
+            print(
+                "Aviso selección periodo:",
+                exc,
+            )
+
+        # ----------------------------------------------------
+        # INSPECCIÓN REAL DEL CALENDARIO
+        # ----------------------------------------------------
+
+        elements = (
+            inspect_interactive_calendar(
+                page
+            )
+        )
+
+        print(
+            "Elementos interactivos encontrados:",
+            len(elements),
+        )
+
+        # Mostrar diagnóstico útil en Actions.
+        date_candidates = []
+
+        for item in elements:
+
+            if not is_session_color(
+                item.get(
+                    "background",
+                    "",
+                )
+            ):
                 continue
 
-            month, year = parsed
-            if year < START_YEAR:
+            parsed_date = (
+                extract_date_from_attributes(
+                    item
+                )
+            )
+
+            if parsed_date:
+
+                date_candidates.append(
+                    (
+                        parsed_date,
+                        item,
+                    )
+                )
+
+        # Eliminar duplicados.
+        unique_dates = {}
+
+        for parsed_date, item in date_candidates:
+
+            key = (
+                parsed_date,
+                round(item["x"]),
+                round(item["y"]),
+            )
+
+            unique_dates[key] = item
+
+        print(
+            "Fechas coloreadas con fecha identificable:",
+            len(unique_dates),
+        )
+
+        # ----------------------------------------------------
+        # CLIC EN CADA FECHA
+        # ----------------------------------------------------
+
+        for (
+            key,
+            item,
+        ) in unique_dates.items():
+
+            parsed_date = key[0]
+
+            if parsed_date.year < START_YEAR:
                 continue
 
-            cells = extract_calendar_cells(page, label)
+            try:
 
-            # Deduplicar candidatos que provienen de spans/elementos anidados.
-            unique = {}
-            for c in cells:
-                if not is_colored(c["background"]):
+                # Localizar nuevamente el elemento.
+                locator = page.locator(
+                    "a, area, button, "
+                    "[role='button'], "
+                    "[onclick], "
+                    "[data-date], "
+                    "[data-day], "
+                    "[data-fecha], "
+                    "[data-id]"
+                ).nth(
+                    item["index"]
+                )
+
+                if locator.count() == 0:
                     continue
-                key = (c["day"], round(c["x"]), round(c["y"]))
-                unique[key] = c
 
-            marked = sorted(unique.values(), key=lambda x: x["day"])
+                locator.scroll_into_view_if_needed()
 
-            if not marked:
-                continue
+                locator.click(
+                    timeout=5000
+                )
 
-            print(f"{label}: {len(marked)} días marcados")
+            except Exception:
 
-            for cell in marked:
+                # Segundo intento mediante coordenadas.
                 try:
-                    page.mouse.click(cell["x"], cell["y"])
-                    page.wait_for_timeout(450)
-                    body = extract_detail_text(page)
+
+                    page.mouse.click(
+                        item["x"],
+                        item["y"],
+                    )
+
                 except Exception:
+
                     continue
 
-                title = extract_event_title(body)
-                if not title:
-                    continue
+            page.wait_for_timeout(
+                500
+            )
 
-                category = classify(title)
-                if category is None:
-                    continue
+            body = get_current_page_text(
+                page
+            )
 
-                # Evita confundir el número del día con un número de sesión.
-                day = cell["day"]
+            title = find_session_title(
+                body
+            )
 
-                # Buscar hora cerca del título.
-                pos = body.upper().find(title.upper())
-                nearby = body[max(0, pos - 300): pos + len(title) + 800] if pos >= 0 else body
-                hm = parse_time(nearby)
+            if not title:
+                continue
 
-                start = make_datetime(year, month, day, f"{hm[0]:02d}:{hm[1]:02d}" if hm else None)
-                end = start + (timedelta(hours=1) if hm else timedelta(days=1))
+            category = classify(
+                title
+            )
 
-                events.append({
+            if category is None:
+                continue
+
+            # Buscar hora cerca del detalle.
+            position = body.upper().find(
+                title.upper()
+            )
+
+            if position >= 0:
+
+                nearby = body[
+                    max(
+                        0,
+                        position - 500,
+                    ):
+                    position
+                    + len(title)
+                    + 1000
+                ]
+
+            else:
+
+                nearby = body
+
+            time_value = parse_time(
+                nearby
+            )
+
+            start = event_datetime(
+                parsed_date.year,
+                parsed_date.month,
+                parsed_date.day,
+                time_value,
+            )
+
+            if time_value:
+
+                end = (
+                    start
+                    + timedelta(
+                        hours=1
+                    )
+                )
+
+                all_day = False
+
+            else:
+
+                end = (
+                    start
+                    + timedelta(
+                        days=1
+                    )
+                )
+
+                all_day = True
+
+            events.append(
+                {
                     "title": title,
                     "category": category,
                     "start": start,
@@ -335,249 +755,622 @@ def get_gaceta_events() -> list[dict]:
                     "url": GACETA_BASE_URL,
                     "location": "",
                     "description": (
-                        "Evento detectado directamente en el "
-                        "Calendario de la Gaceta Parlamentaria."
+                        "Detectado directamente "
+                        "en la Gaceta Parlamentaria."
                     ),
-                    "source": "Gaceta Parlamentaria",
-                    "all_day": hm is None,
-                })
+                    "source": (
+                        "Gaceta Parlamentaria"
+                    ),
+                    "all_day": all_day,
+                }
+            )
+
+            print(
+                "Gaceta:",
+                parsed_date.isoformat(),
+                "|",
+                category,
+                "|",
+                title,
+            )
 
         browser.close()
 
-    return events
+    # --------------------------------------------------------
+    # NO PERMITIR RESULTADO SILENCIOSAMENTE VACÍO
+    # --------------------------------------------------------
+
+    if not events:
+
+        raise RuntimeError(
+            "\n"
+            "ERROR: La Gaceta no produjo ningún "
+            "evento objetivo.\n"
+            "No se generará un calendario vacío.\n"
+            "Se creó gaceta_debug.html para diagnóstico."
+        )
+
+    return deduplicate_events(
+        events
+    )
 
 
-def get_agenda_events() -> list[dict]:
-    """
-    Fuente complementaria. Solo aporta hora/lugar/enlace cuando la Agenda
-    ya publicó el evento. Nunca crea un Pleno por sí sola.
-    """
+# ============================================================
+# AGENDA COMPLEMENTARIA
+# ============================================================
+
+def get_agenda_events():
+
     session = requests.Session()
-    session.headers.update({
-        "User-Agent": USER_AGENT,
-        "Accept-Language": "es-MX,es;q=0.9",
-    })
+
+    session.headers.update(
+        {
+            "User-Agent": USER_AGENT,
+            "Accept-Language": (
+                "es-MX,es;q=0.9"
+            ),
+        }
+    )
 
     results = []
 
-    current = date(START_YEAR, START_MONTH, 1)
+    current = date(
+        START_YEAR,
+        START_MONTH,
+        1,
+    )
 
-    for _ in range(LOOK_AHEAD_MONTHS):
-        y, m = current.year, current.month
-        url = MONTH_URL.format(year=y, month=m)
+    for _ in range(
+        LOOK_AHEAD_MONTHS
+    ):
+
+        year = current.year
+        month = current.month
+
+        url = MONTH_URL.format(
+            year=year,
+            month=month,
+        )
+
+        print(
+            "Consultando agenda:",
+            f"{year}-{month:02d}",
+        )
 
         try:
-            response = session.get(url, timeout=REQUEST_TIMEOUT)
+
+            response = session.get(
+                url,
+                timeout=REQUEST_TIMEOUT,
+            )
+
             response.raise_for_status()
+
         except requests.RequestException as exc:
-            print(f"{y}-{m:02d}: no se pudo consultar Agenda ({exc})")
-            current += relativedelta(months=1)
+
+            print(
+                "Error agenda:",
+                exc,
+            )
+
+            current += relativedelta(
+                months=1
+            )
+
             continue
 
-        soup = BeautifulSoup(response.text, "html.parser")
-        text = soup.get_text(" ", strip=True)
+        soup = BeautifulSoup(
+            response.text,
+            "html.parser",
+        )
 
-        # Solo guardamos enlaces/títulos que correspondan a nuestros dos
-        # grupos. La Gaceta sigue siendo la fuente que decide si existe.
-        for a in soup.find_all("a", href=True):
-            title = normalize(a.get_text(" ", strip=True))
-            category = classify(title)
-            if not category:
+        for link in soup.find_all(
+            "a",
+            href=True,
+        ):
+
+            title = normalize(
+                link.get_text(
+                    " ",
+                    strip=True,
+                )
+            )
+
+            category = classify(
+                title
+            )
+
+            if category is None:
                 continue
 
-            href = urljoin(AGENDA_BASE_URL, a["href"])
-            parent = a
+            # Contexto alrededor del enlace.
+            parent = link
             context = title
 
-            for _ in range(7):
+            for _ in range(8):
+
                 if parent is None:
                     break
-                t = normalize(parent.get_text(" ", strip=True))
-                if len(t) > len(context):
-                    context = t
-                if re.search(r"\b\d{1,2}\s+(?:de\s+)?[A-Za-zÁÉÍÓÚáéíóúñÑ]+\s+20\d{2}\b", t):
-                    break
+
+                text = normalize(
+                    parent.get_text(
+                        " ",
+                        strip=True,
+                    )
+                )
+
+                if len(text) > len(context):
+                    context = text
+
                 parent = parent.parent
 
-            dt = None
-            mdt = re.search(
-                r"(\d{1,2})\s+([A-Za-zÁÉÍÓÚáéíóúñÑ]+)\s+(20\d{2})\D{0,30}(\d{1,2}):(\d{2})",
+            # Buscar fecha + hora.
+            match = re.search(
+                r"(\d{1,2})\s+"
+                r"([A-Za-zÁÉÍÓÚáéíóúñÑ]+)\s+"
+                r"(20\d{2})"
+                r".{0,50}?"
+                r"(\d{1,2}):(\d{2})",
                 context,
-                re.I,
+                flags=re.I,
             )
-            if mdt:
-                mo = MONTHS.get(mdt.group(2).casefold())
-                if mo:
-                    try:
-                        dt = datetime(
-                            int(mdt.group(3)), mo, int(mdt.group(1)),
-                            int(mdt.group(4)), int(mdt.group(5)),
-                            tzinfo=TZ,
-                        )
-                    except ValueError:
-                        pass
 
-            if dt:
-                results.append({
+            if not match:
+                continue
+
+            month_number = MONTHS.get(
+                match.group(2).casefold()
+            )
+
+            if not month_number:
+                continue
+
+            try:
+
+                start = datetime(
+                    int(match.group(3)),
+                    month_number,
+                    int(match.group(1)),
+                    int(match.group(4)),
+                    int(match.group(5)),
+                    tzinfo=TZ,
+                )
+
+            except ValueError:
+
+                continue
+
+            results.append(
+                {
                     "title": title,
                     "category": category,
-                    "start": dt,
-                    "end": dt + timedelta(hours=1),
-                    "url": href,
+                    "start": start,
+                    "end": (
+                        start
+                        + timedelta(
+                            hours=1
+                        )
+                    ),
+                    "url": urljoin(
+                        AGENDA_BASE_URL,
+                        link["href"],
+                    ),
                     "location": "",
                     "description": "",
-                    "source": "Agenda Parlamentaria",
+                    "source": (
+                        "Agenda Parlamentaria"
+                    ),
                     "all_day": False,
-                })
+                }
+            )
 
-        current += relativedelta(months=1)
+        current += relativedelta(
+            months=1
+        )
 
     return results
 
 
-def merge_events(gaceta: list[dict], agenda: list[dict]) -> list[dict]:
-    """
-    La Gaceta manda. La Agenda solo complementa.
-    """
-    agenda_by_date = {}
+# ============================================================
+# DEDUPLICACIÓN
+# ============================================================
 
-    for a in agenda:
-        key = (a["category"], a["start"].date())
-        agenda_by_date.setdefault(key, []).append(a)
+def deduplicate_events(
+    events: list[dict],
+):
 
-    merged = []
-
-    for g in gaceta:
-        key = (g["category"], g["start"].date())
-        candidates = agenda_by_date.get(key, [])
-
-        best = None
-        if candidates:
-            # Preferir título que comparta palabras relevantes.
-            best = max(
-                candidates,
-                key=lambda a: len(set(g["title"].casefold().split()) &
-                                  set(a["title"].casefold().split()))
-            )
-
-        item = dict(g)
-
-        if best:
-            if not g["all_day"]:
-                item["start"] = best["start"]
-                item["end"] = best["end"]
-                item["all_day"] = False
-            item["url"] = best.get("url") or g["url"]
-            item["location"] = best.get("location", "")
-            item["description"] = (
-                g["description"] +
-                "\nComplementado con la Agenda Parlamentaria."
-            )
-
-        merged.append(item)
-
-    # Deduplicación final.
     unique = {}
-    for e in merged:
+
+    for event in events:
+
         key = (
-            e["category"],
-            e["start"].date().isoformat(),
+            event["category"],
+            event["start"].date().isoformat(),
         )
 
-        # Si hay dos eventos el mismo día de la misma categoría,
-        # conservar el que tenga más información.
         if key not in unique:
-            unique[key] = e
+
+            unique[key] = event
+
+            continue
+
+        old = unique[key]
+
+        old_score = sum(
+            bool(
+                old.get(field)
+            )
+            for field in (
+                "url",
+                "location",
+                "description",
+            )
+        )
+
+        new_score = sum(
+            bool(
+                event.get(field)
+            )
+            for field in (
+                "url",
+                "location",
+                "description",
+            )
+        )
+
+        if new_score > old_score:
+
+            unique[key] = event
+
+    return sorted(
+        unique.values(),
+        key=lambda x: x["start"],
+    )
+
+
+# ============================================================
+# COMPLEMENTAR GACETA CON AGENDA
+# ============================================================
+
+def merge_events(
+    gaceta_events,
+    agenda_events,
+):
+
+    result = []
+
+    for gaceta in gaceta_events:
+
+        candidates = [
+            agenda
+            for agenda in agenda_events
+            if (
+                agenda["category"]
+                == gaceta["category"]
+                and
+                agenda["start"].date()
+                == gaceta["start"].date()
+            )
+        ]
+
+        if candidates:
+
+            agenda = candidates[0]
+
+            # Si la Gaceta no proporciona hora,
+            # usamos la hora publicada en Agenda.
+            if gaceta["all_day"]:
+
+                gaceta["start"] = (
+                    agenda["start"]
+                )
+
+                gaceta["end"] = (
+                    agenda["end"]
+                )
+
+                gaceta["all_day"] = False
+
+            if agenda.get("url"):
+
+                gaceta["url"] = (
+                    agenda["url"]
+                )
+
+            if agenda.get("location"):
+
+                gaceta["location"] = (
+                    agenda["location"]
+                )
+
+        result.append(
+            gaceta
+        )
+
+    return deduplicate_events(
+        result
+    )
+
+
+# ============================================================
+# ICS
+# ============================================================
+
+def make_uid(
+    event: dict,
+):
+
+    raw = (
+        f"{event['category']}|"
+        f"{event['start'].date()}|"
+        f"{event['title']}"
+    )
+
+    digest = hashlib.sha1(
+        raw.encode("utf-8")
+    ).hexdigest()
+
+    return (
+        digest
+        + "@congreso-jalisco-calendar"
+    )
+
+
+def build_calendar(
+    events,
+):
+
+    calendar = Calendar()
+
+    calendar.add(
+        "prodid",
+        "-//Congreso Jalisco Calendar//ES//",
+    )
+
+    calendar.add(
+        "version",
+        "2.0",
+    )
+
+    calendar.add(
+        "calscale",
+        "GREGORIAN",
+    )
+
+    calendar.add(
+        "X-WR-CALNAME",
+        "Congreso de Jalisco",
+    )
+
+    calendar.add(
+        "X-WR-TIMEZONE",
+        TIMEZONE,
+    )
+
+    for event_data in events:
+
+        event = Event()
+
+        event.add(
+            "uid",
+            make_uid(
+                event_data
+            ),
+        )
+
+        if event_data[
+            "all_day"
+        ]:
+
+            event.add(
+                "dtstart",
+                event_data[
+                    "start"
+                ].date(),
+            )
+
+            event.add(
+                "dtend",
+                event_data[
+                    "end"
+                ].date(),
+            )
+
         else:
-            old = unique[key]
-            old_score = sum(bool(old.get(k)) for k in ("url", "location", "description"))
-            new_score = sum(bool(e.get(k)) for k in ("url", "location", "description"))
-            if new_score > old_score:
-                unique[key] = e
 
-    return sorted(unique.values(), key=lambda e: e["start"])
+            event.add(
+                "dtstart",
+                event_data[
+                    "start"
+                ],
+            )
+
+            event.add(
+                "dtend",
+                event_data[
+                    "end"
+                ],
+            )
+
+        event.add(
+            "summary",
+            event_data[
+                "title"
+            ],
+        )
+
+        event.add(
+            "categories",
+            event_data[
+                "category"
+            ],
+        )
+
+        description = (
+            event_data.get(
+                "description",
+                "",
+            )
+        )
+
+        if event_data.get(
+            "url"
+        ):
+
+            description += (
+                "\nFuente: "
+                + event_data[
+                    "url"
+                ]
+            )
+
+            event.add(
+                "url",
+                event_data[
+                    "url"
+                ],
+            )
+
+        event.add(
+            "description",
+            description,
+        )
+
+        if event_data.get(
+            "location"
+        ):
+
+            event.add(
+                "location",
+                event_data[
+                    "location"
+                ],
+            )
+
+        calendar.add_component(
+            event
+        )
+
+    return calendar
 
 
-def uid_for(event: dict) -> str:
-    raw = f"{event['category']}|{event['start'].date()}|{event['title']}"
-    return hashlib.sha1(raw.encode("utf-8")).hexdigest() + "@congreso-jalisco"
-
-
-def build_calendar(events: list[dict]) -> Calendar:
-    cal = Calendar()
-    cal.add("prodid", "-//Congreso Jalisco Calendar//ES//")
-    cal.add("version", "2.0")
-    cal.add("calscale", "GREGORIAN")
-    cal.add("X-WR-CALNAME", "Congreso de Jalisco")
-    cal.add("X-WR-TIMEZONE", TIMEZONE)
-
-    for e in events:
-        item = Event()
-        item.add("uid", uid_for(e))
-
-        if e["all_day"]:
-            item.add("dtstart", e["start"].date())
-            item.add("dtend", e["end"].date())
-        else:
-            item.add("dtstart", e["start"])
-            item.add("dtend", e["end"])
-
-        item.add("summary", e["title"])
-        item.add("categories", e["category"])
-
-        if e.get("location"):
-            item.add("location", e["location"])
-
-        description = e.get("description", "")
-        if e.get("url"):
-            description += f"\nFuente: {e['url']}"
-        item.add("description", description)
-
-        if e.get("url"):
-            item.add("url", e["url"])
-
-        cal.add_component(item)
-
-    return cal
-
+# ============================================================
+# MAIN
+# ============================================================
 
 def main():
-    print("=" * 60)
-    print(" Congreso de Jalisco - Calendario")
-    print(" FUENTE PRINCIPAL: Gaceta Parlamentaria")
+
     print("=" * 60)
 
-    gaceta_events = get_gaceta_events()
-    print(f"\nGaceta: {len(gaceta_events)} eventos objetivo")
+    print(
+        "CONGRESO DE JALISCO - CALENDARIO"
+    )
 
-    agenda_events = get_agenda_events()
-    print(f"Agenda complementaria: {len(agenda_events)} eventos")
+    print(
+        "FUENTE PRINCIPAL: GACETA PARLAMENTARIA"
+    )
 
-    events = merge_events(gaceta_events, agenda_events)
+    print("=" * 60)
 
-    print("\nRESUMEN")
-    print(f"Pleno: {sum(e['category'] == 'Pleno' for e in events)}")
-    print("Comisión:", sum(
-        e["category"] == "Comisión de Higiene, Salud y Prevención de las Adicciones"
-        for e in events
-    ))
-    print(f"TOTAL: {len(events)}")
+    # 1. Gaceta = fuente principal.
+    gaceta_events = (
+        get_gaceta_events()
+    )
 
-    for e in events:
+    print()
+    print(
+        "Gaceta:",
+        len(gaceta_events),
+        "eventos objetivo",
+    )
+
+    # 2. Agenda = complemento.
+    agenda_events = (
+        get_agenda_events()
+    )
+
+    print(
+        "Agenda complementaria:",
+        len(agenda_events),
+        "eventos",
+    )
+
+    # 3. Combinar.
+    events = merge_events(
+        gaceta_events,
+        agenda_events,
+    )
+
+    print()
+    print(
+        "=============================="
+    )
+
+    print("RESUMEN")
+
+    print(
+        "=============================="
+    )
+
+    pleno = sum(
+        event["category"]
+        == "Pleno"
+        for event in events
+    )
+
+    commission = sum(
+        event["category"]
+        ==
+        "Comisión de Higiene, Salud y "
+        "Prevención de las Adicciones"
+        for event in events
+    )
+
+    print(
+        "Pleno:",
+        pleno,
+    )
+
+    print(
+        "Comisión:",
+        commission,
+    )
+
+    print(
+        "TOTAL:",
+        len(events),
+    )
+
+    print()
+
+    for event in events:
+
         print(
-            e["start"].strftime("%Y-%m-%d %H:%M"),
+            event["start"].strftime(
+                "%Y-%m-%d %H:%M"
+            ),
             "|",
-            e["category"],
+            event["category"],
             "|",
-            e["title"],
-            "|",
-            e["source"],
+            event["title"],
         )
 
-    cal = build_calendar(events)
-    Path(OUTPUT_FILE).write_bytes(cal.to_ical())
+    # 4. Generar ICS.
+    calendar = build_calendar(
+        events
+    )
 
-    print(f"\nCalendario generado: {OUTPUT_FILE}")
+    Path(
+        OUTPUT_FILE
+    ).write_bytes(
+        calendar.to_ical()
+    )
+
+    print()
+    print(
+        "Calendario generado:",
+        OUTPUT_FILE,
+    )
 
 
 if __name__ == "__main__":
