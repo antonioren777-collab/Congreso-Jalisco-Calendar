@@ -4,7 +4,6 @@ import hashlib
 import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -37,19 +36,13 @@ COMMISSION_NAME = (
 )
 
 MONTHS = {
-    "enero": 1,
-    "febrero": 2,
-    "marzo": 3,
-    "abril": 4,
-    "mayo": 5,
-    "junio": 6,
-    "julio": 7,
-    "agosto": 8,
-    "septiembre": 9,
-    "octubre": 10,
-    "noviembre": 11,
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4,
+    "mayo": 5, "junio": 6, "julio": 7, "agosto": 8,
+    "septiembre": 9, "octubre": 10, "noviembre": 11,
     "diciembre": 12,
 }
+
+TIME_RE = re.compile(r"\b(?:[01]?\d|2[0-3]):[0-5]\d\b")
 
 
 def normalize(text: str) -> str:
@@ -60,16 +53,8 @@ def normalize(text: str) -> str:
     ).strip()
 
 
-def is_target_commission(text: str) -> bool:
-    """
-    Devuelve True únicamente para la Comisión de Higiene,
-    Salud Pública y Prevención de las Adicciones.
-
-    Se aceptan las palabras distintivas que utiliza la Gaceta:
-    SALUD, HIGIENE o ADICCIONES.
-    """
+def target_commission(text: str) -> bool:
     upper = normalize(text).upper()
-
     return (
         "SALUD" in upper
         or "HIGIENE" in upper
@@ -77,207 +62,164 @@ def is_target_commission(text: str) -> bool:
     )
 
 
-def classify(title: str) -> str | None:
-    """
-    Clasificación de respaldo cuando no existe una clase
-    estructural suficiente en el calendario de la Gaceta.
-    """
+def parse_hhmm(text: str):
+    match = TIME_RE.search(text or "")
+    if not match:
+        return None
+    h, m = match.group().split(":")
+    return int(h), int(m)
 
-    text = normalize(title).casefold()
 
-    if any(
-        pattern.casefold() in text
-        for pattern in PLENO_PATTERNS
-    ) or "pleno" in text:
+def extract_session_lines(text: str) -> list[str]:
+    """
+    Extrae únicamente líneas que representan sesiones reales.
+    No analiza la leyenda global del calendario.
+    """
+    lines = []
+
+    for raw in (text or "").splitlines():
+        line = normalize(raw)
+
+        if not line:
+            continue
+
+        if re.match(
+            r"^(?:[01]?\d|2[0-3]):[0-5]\d\s*-\s*SESI[ÓO]N\b",
+            line,
+            re.IGNORECASE,
+        ):
+            lines.append(line)
+            continue
+
+        if re.match(
+            r"^SESI[ÓO]N\s+(?:NUM\.?\s*)?\d+\b",
+            line,
+            re.IGNORECASE,
+        ):
+            lines.append(line)
+
+    return lines
+
+
+def classify_session(title: str):
+    upper = normalize(title).upper()
+
+    if "PLENO" in upper:
         return PLENO_NAME
 
-    if any(
-        pattern.casefold() in text
-        for pattern in COMMISSION_PATTERNS
-    ) or is_target_commission(text):
+    if target_commission(upper):
         return COMMISSION_NAME
 
     return None
 
 
-def parse_time(text: str):
-    match = re.search(
-        r"\b([01]?\d|2[0-3]):([0-5]\d)\b",
-        text or "",
-    )
-
-    if not match:
-        return None
-
-    return (
-        int(match.group(1)),
-        int(match.group(2)),
-    )
-
-
-def is_generic_calendar_label(line: str) -> bool:
-    upper = normalize(line).upper()
-
-    generic_labels = (
-        "SESIÓN DE PLENO DEL CONGRESO",
-        "SESION DE PLENO DEL CONGRESO",
-        "REANUDACIÓN SESIÓN DE PLENO DEL CONGRESO",
-        "REANUDACION SESION DE PLENO DEL CONGRESO",
-        "SESIÓN DE COMISIÓN/COMITÉ",
-        "SESION DE COMISION/COMITE",
-        "EVENTO DE COMISIÓN/COMITÉ",
-        "EVENTO DE COMISION/COMITE",
-        "PLENO DEL CONGRESO Y COMISIÓN/COMITÉ",
-        "PLENO DEL CONGRESO Y COMISION/COMITE",
-    )
-
-    return (
-        upper in generic_labels
-        or upper.startswith("SESIÓN DE COMISIÓN/COMITÉ")
-        or upper.startswith("SESION DE COMISION/COMITE")
-        or upper.startswith("EVENTO DE COMISIÓN/COMITÉ")
-        or upper.startswith("EVENTO DE COMISION/COMITE")
-    )
-
-
-def is_numbered_session(line: str) -> bool:
-    upper = normalize(line).upper()
-
-    return bool(
-        (
-            "SESIÓN" in upper
-            or "SESION" in upper
-        )
-        and re.search(
-            r"\b(?:N[ÚU]M\.?|NUM\.?)\s*\d+",
-            upper,
-        )
-    )
-
-
-def parse_detail(
-    body: str,
-    category_hint: str | None = None,
-):
-    """
-    Obtiene el nombre real de la sesión.
-
-    Para Pleno:
-      busca primero una sesión numerada y/o texto de Pleno.
-
-    Para Comisión:
-      SOLO acepta una sesión cuyo texto contenga SALUD,
-      HIGIENE o ADICCIONES.
-
-    Nunca devuelve una comisión distinta a la solicitada.
-    """
-
-    lines = [
-        normalize(line)
-        for line in body.splitlines()
-        if normalize(line)
-    ]
-
-    # --------------------------------------------------------
-    # SESIONES NUMERADAS
-    # --------------------------------------------------------
-
-    numbered = [
-        line
-        for line in lines
-        if is_numbered_session(line)
-        and not is_generic_calendar_label(line)
-    ]
-
-    if category_hint == PLENO_NAME:
-        for line in numbered:
-            upper = line.upper()
-
-            if "PLENO" in upper:
-                return line, parse_time(line)
-
-        # Algunas sesiones de Pleno pueden aparecer con hora
-        # y título específico sin repetir la palabra Pleno.
-        # Si no hay otra comisión objetivo en la línea, aceptar
-        # una sesión numerada que no sea de comisión.
-        for line in numbered:
-            upper = line.upper()
-
-            if (
-                "COMISIÓN" not in upper
-                and "COMISION" not in upper
-            ):
-                return line, parse_time(line)
-
-        return None, None
-
-    if category_hint == COMMISSION_NAME:
-        for line in numbered:
-            if is_target_commission(line):
-                return line, parse_time(line)
-
-        # MUY IMPORTANTE:
-        # No devolver otra comisión.
-        return None, None
-
-    # --------------------------------------------------------
-    # SIN CATEGORÍA ESTRUCTURAL
-    # --------------------------------------------------------
-
-    for line in numbered:
-        if is_target_commission(line):
-            return line, parse_time(line)
-
-    for line in numbered:
-        if "PLENO" in line.upper():
-            return line, parse_time(line)
-
-    # --------------------------------------------------------
-    # SESIONES NO NUMERADAS
-    # --------------------------------------------------------
-
-    candidates = [
-        line
-        for line in lines
-        if (
-            "SESIÓN" in line.upper()
-            or "SESION" in line.upper()
-        )
-        and not is_generic_calendar_label(line)
-    ]
-
-    if category_hint == COMMISSION_NAME:
-        for line in candidates:
-            if is_target_commission(line):
-                return line, parse_time(line)
-
-        return None, None
-
-    if category_hint == PLENO_NAME:
-        for line in candidates:
-            if "PLENO" in line.upper():
-                return line, parse_time(line)
-
-        return None, None
+def extract_sessions_from_detail(detail_text: str):
+    candidates = extract_session_lines(detail_text)
+    results = []
 
     for line in candidates:
-        if is_target_commission(line):
-            return line, parse_time(line)
+        match = re.match(
+            r"^(?P<time>(?:[01]?\d|2[0-3]):[0-5]\d)\s*-\s*"
+            r"(?P<title>.+)$",
+            line,
+            re.IGNORECASE,
+        )
 
-    for line in candidates:
-        if "PLENO" in line.upper():
-            return line, parse_time(line)
+        if match:
+            time_text = match.group("time")
+            title = normalize(match.group("title"))
+        else:
+            time_text = None
+            title = normalize(line)
 
-    return None, None
+        category = classify_session(title)
+
+        # Solo Pleno o la comisión de Higiene/Salud.
+        if category is None:
+            continue
+
+        # Nunca aceptar las leyendas genéricas.
+        if title.upper().startswith(
+            (
+                "SESIÓN DE COMISIÓN",
+                "SESION DE COMISION",
+                "EVENTO DE COMISIÓN",
+                "EVENTO DE COMISION",
+            )
+        ):
+            continue
+
+        results.append(
+            {
+                "title": title,
+                "category": category,
+                "time": time_text,
+            }
+        )
+
+    return results
+
+
+def detail_text_after_click(page):
+    """
+    Busca primero contenedores de detalle visibles.
+    Si no existe un selector estable, usa body como último
+    recurso, pero extract_session_lines() solo aceptará líneas
+    que tengan formato real de sesión.
+    """
+    selectors = [
+        "#eventos",
+        "#evento",
+        "#detalle",
+        "#detalles",
+        ".detalle",
+        ".detalles",
+        ".event-detail",
+        ".evento",
+        ".session-detail",
+        ".ui-dialog",
+        ".modal",
+    ]
+
+    chunks = []
+
+    for selector in selectors:
+        try:
+            loc = page.locator(selector)
+
+            for i in range(min(loc.count(), 10)):
+                node = loc.nth(i)
+
+                if not node.is_visible():
+                    continue
+
+                txt = node.inner_text(timeout=1500)
+
+                if txt and (
+                    "SESIÓN" in txt.upper()
+                    or "SESION" in txt.upper()
+                ):
+                    chunks.append(txt)
+        except Exception:
+            pass
+
+    if chunks:
+        return min(
+            (normalize(c) for c in chunks if c),
+            key=len,
+            default="",
+        )
+
+    return page.locator("body").inner_text(
+        timeout=10000
+    )
 
 
 def get_gaceta_events():
     events = []
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-        )
+        browser = p.chromium.launch(headless=True)
 
         page = browser.new_page(
             viewport={
@@ -295,236 +237,202 @@ def get_gaceta_events():
             timeout=60000,
         )
 
-        page.wait_for_timeout(3000)
+        page.wait_for_timeout(2500)
 
+        # IMPORTANTE:
+        # Ya no dependemos de sesple/sescom para decidir qué fechas
+        # revisar. Recorremos todas las fechas disponibles desde
+        # julio de 2026.
         cells = page.locator(
-            "#datepicker "
-            "td[data-handler='selectDay']"
-            "[data-year='2026']"
+            "#datepicker td[data-handler='selectDay']"
         )
 
-        count = cells.count()
+        raw_dates = []
 
-        print(
-            "Días 2026 interactivos encontrados:",
-            count,
-        )
-
-        for i in range(count):
+        for i in range(cells.count()):
             cell = cells.nth(i)
 
             try:
-                month_raw = cell.get_attribute(
-                    "data-month"
-                )
-                year_raw = cell.get_attribute(
-                    "data-year"
-                )
+                year_raw = cell.get_attribute("data-year")
+                month_raw = cell.get_attribute("data-month")
 
-                if (
-                    month_raw is None
-                    or year_raw is None
-                ):
+                if year_raw is None or month_raw is None:
                     continue
 
-                month = int(month_raw)
                 year = int(year_raw)
-
-                day_match = re.search(
-                    r"\b\d{1,2}\b",
-                    normalize(cell.inner_text()),
-                )
-
-                if not day_match:
-                    continue
-
-                day = int(day_match.group())
-
-                cls = (
-                    cell.get_attribute("class")
-                    or ""
-                )
-
-                title_attr = (
-                    cell.get_attribute("title")
-                    or ""
-                )
-
-                if (
-                    "ui-datepicker-unselectable"
-                    in cls
-                ):
-                    continue
+                month = int(month_raw) + 1
 
                 if year < START_YEAR:
                     continue
 
                 if (
                     year == START_YEAR
-                    and month + 1 < START_MONTH
+                    and month < START_MONTH
                 ):
                     continue
 
-                if not any(
-                    marker in cls
-                    for marker in (
-                        "sesple",
-                        "rsesple",
-                        "sescom",
-                        "varios",
+                link = cell.locator("a").first
+
+                if link.count() == 0:
+                    continue
+
+                day_text = normalize(link.inner_text())
+
+                if not day_text.isdigit():
+                    continue
+
+                raw_dates.append(
+                    (
+                        year,
+                        month,
+                        int(day_text),
                     )
-                ):
+                )
+
+            except Exception:
+                continue
+
+        dates = sorted(set(raw_dates))
+
+        print(
+            f"Fechas del calendario desde "
+            f"{START_YEAR}-{START_MONTH:02d}: "
+            f"{len(dates)}"
+        )
+
+        for year, month, day in dates:
+            print(
+                f"Consultando Gaceta: "
+                f"{year}-{month:02d}-{day:02d}"
+            )
+
+            try:
+                selector = (
+                    "#datepicker td[data-handler='selectDay']"
+                    f"[data-year='{year}']"
+                    f"[data-month='{month - 1}']"
+                    " a"
+                )
+
+                links = page.locator(selector)
+                clicked = False
+
+                for j in range(links.count()):
+                    link = links.nth(j)
+
+                    if normalize(link.inner_text()) != str(day):
+                        continue
+
+                    link.scroll_into_view_if_needed()
+                    link.click(timeout=8000)
+                    clicked = True
+                    break
+
+                if not clicked:
+                    print("  -> no se pudo seleccionar la fecha")
                     continue
 
-                # La clase estructural indica qué tipo de
-                # actividad existe ese día.
-                if (
-                    "sesple" in cls
-                    or "rsesple" in cls
-                ):
-                    category_hint = PLENO_NAME
+                page.wait_for_timeout(450)
 
-                elif "sescom" in cls:
-                    category_hint = COMMISSION_NAME
+                detail = detail_text_after_click(page)
+                sessions = extract_sessions_from_detail(detail)
 
-                else:
-                    category_hint = None
+                if not sessions:
+                    print("  -> sin sesiones objetivo")
+                    continue
 
-                print(
-                    f"  Gaceta: "
-                    f"{year}-{month + 1:02d}-{day:02d} "
-                    f"class={cls.strip()} "
-                    f"title={title_attr}"
-                )
+                for session in sessions:
+                    time_value = parse_hhmm(
+                        session["time"] or ""
+                    )
 
-                cell.scroll_into_view_if_needed()
+                    # Para casos como la sesión del 13 de agosto,
+                    # la Gaceta muestra el nombre en una línea y la
+                    # hora en otra. Si solo hay una hora en el detalle,
+                    # la asociamos a esa sesión.
+                    if time_value is None:
+                        nearby_times = TIME_RE.findall(detail)
 
-                cell.click(timeout=5000)
+                        if len(nearby_times) == 1:
+                            time_value = parse_hhmm(
+                                nearby_times[0]
+                            )
 
-                page.wait_for_timeout(350)
+                    h, m = time_value or (0, 0)
 
-                body = page.locator(
-                    "body"
-                ).inner_text(
-                    timeout=10000
-                )
+                    start = datetime(
+                        year,
+                        month,
+                        day,
+                        h,
+                        m,
+                        tzinfo=TZ,
+                    )
 
-                title, time_value = parse_detail(
-                    body,
-                    category_hint,
-                )
+                    all_day = time_value is None
 
-                if not title:
+                    end = (
+                        start + timedelta(days=1)
+                        if all_day
+                        else start + timedelta(hours=1)
+                    )
+
+                    events.append(
+                        {
+                            "title": session["title"],
+                            "category": session["category"],
+                            "start": start,
+                            "end": end,
+                            "url": GACETA_BASE_URL,
+                            "location": "",
+                            "description": (
+                                "Fuente: Gaceta Parlamentaria "
+                                "del Congreso del Estado de Jalisco."
+                            ),
+                            "source": "Gaceta Parlamentaria",
+                            "all_day": all_day,
+                        }
+                    )
+
                     print(
-                        "    -> no corresponde a "
-                        "Pleno o Comisión de Higiene/Salud"
+                        "  ->",
+                        session["category"],
+                        "|",
+                        start.strftime("%H:%M"),
+                        "|",
+                        session["title"],
                     )
-                    continue
-
-                # ------------------------------------------------
-                # Categoría final.
-                # ------------------------------------------------
-
-                if category_hint == PLENO_NAME:
-                    category = PLENO_NAME
-
-                elif category_hint == COMMISSION_NAME:
-                    # SOLO conservar la comisión objetivo.
-                    if not is_target_commission(title):
-                        print(
-                            "    -> otra comisión ignorada:",
-                            title,
-                        )
-                        continue
-
-                    category = COMMISSION_NAME
-
-                else:
-                    category = classify(title)
-
-                    if category is None:
-                        print(
-                            "    -> ignorado:",
-                            title,
-                        )
-                        continue
-
-                start = datetime(
-                    year,
-                    month + 1,
-                    day,
-                    *(time_value or (0, 0)),
-                    tzinfo=TZ,
-                )
-
-                if time_value:
-                    end = start + timedelta(
-                        hours=1
-                    )
-                    all_day = False
-                else:
-                    end = start + timedelta(
-                        days=1
-                    )
-                    all_day = True
-
-                events.append(
-                    {
-                        "title": title,
-                        "category": category,
-                        "start": start,
-                        "end": end,
-                        "url": GACETA_BASE_URL,
-                        "location": "",
-                        "description": (
-                            "Detectado directamente "
-                            "en el Calendario de la "
-                            "Gaceta Parlamentaria."
-                        ),
-                        "source": (
-                            "Gaceta Parlamentaria"
-                        ),
-                        "all_day": all_day,
-                    }
-                )
-
-                print(
-                    f"    -> {category}: {title}"
-                )
 
             except Exception as exc:
                 print(
-                    f"    -> error en celda {i}: {exc}"
+                    f"  -> error en "
+                    f"{year}-{month:02d}-{day:02d}: {exc}"
                 )
 
         browser.close()
 
+    events = deduplicate(events)
+
     if not events:
         raise RuntimeError(
-            "La Gaceta no produjo ningún "
-            "evento objetivo. "
+            "La Gaceta no produjo ningún evento objetivo. "
             "No se generará un calendario vacío."
         )
 
-    return deduplicate(events)
+    return events
 
 
 def get_agenda_events():
     """
-    La Agenda es únicamente complementaria.
-
-    Si no encuentra información, no afecta la extracción
-    principal de la Gaceta.
+    Agenda secundaria. Solo complementa información faltante
+    y nunca crea una comisión que no sea la de Higiene/Salud.
     """
-
     session = requests.Session()
 
     session.headers.update(
         {
             "User-Agent": USER_AGENT,
-            "Accept-Language": (
-                "es-MX,es;q=0.9"
-            ),
+            "Accept-Language": "es-MX,es;q=0.9",
         }
     )
 
@@ -536,9 +444,7 @@ def get_agenda_events():
         1,
     )
 
-    for _ in range(
-        LOOK_AHEAD_MONTHS
-    ):
+    for _ in range(LOOK_AHEAD_MONTHS):
         year = current.year
         month = current.month
 
@@ -557,6 +463,7 @@ def get_agenda_events():
                 url,
                 timeout=REQUEST_TIMEOUT,
             )
+
             response.raise_for_status()
 
         except requests.RequestException as exc:
@@ -586,9 +493,15 @@ def get_agenda_events():
                 )
             )
 
-            category = classify(title)
+            upper = title.upper()
 
-            if not category:
+            if "PLENO" in upper:
+                category = PLENO_NAME
+
+            elif target_commission(upper):
+                category = COMMISSION_NAME
+
+            else:
                 continue
 
             parent = link
@@ -614,7 +527,7 @@ def get_agenda_events():
                 r"(\d{1,2})\s+"
                 r"([A-Za-zÁÉÍÓÚáéíóúñÑ]+)\s+"
                 r"(20\d{2})"
-                r".{0,60}?"
+                r".{0,100}?"
                 r"(\d{1,2}):(\d{2})",
                 context,
                 flags=re.I,
@@ -639,6 +552,7 @@ def get_agenda_events():
                     int(match.group(5)),
                     tzinfo=TZ,
                 )
+
             except ValueError:
                 continue
 
@@ -647,18 +561,17 @@ def get_agenda_events():
                     "title": title,
                     "category": category,
                     "start": start,
-                    "end": start + timedelta(
-                        hours=1
-                    ),
-                    "url": urljoin(
+                    "end": start + timedelta(hours=1),
+                    "url": requests.compat.urljoin(
                         AGENDA_BASE_URL,
                         link["href"],
                     ),
                     "location": "",
-                    "description": "",
-                    "source": (
-                        "Agenda Parlamentaria"
+                    "description": (
+                        "Fuente complementaria: "
+                        "Agenda Parlamentaria."
                     ),
+                    "source": "Agenda Parlamentaria",
                     "all_day": False,
                 }
             )
@@ -667,17 +580,59 @@ def get_agenda_events():
             months=1
         )
 
-    return results
+    return deduplicate(results)
+
+
+def merge_events(gaceta_events, agenda_events):
+    """
+    La Gaceta es la fuente principal.
+    La Agenda solo rellena la hora si Gaceta no la dio.
+    """
+    result = []
+
+    for gaceta in gaceta_events:
+        same_day = [
+            a
+            for a in agenda_events
+            if (
+                a["category"] == gaceta["category"]
+                and a["start"].date()
+                == gaceta["start"].date()
+            )
+        ]
+
+        matching = [
+            a
+            for a in same_day
+            if (
+                normalize(gaceta["title"]).casefold()
+                in normalize(a["title"]).casefold()
+                or normalize(a["title"]).casefold()
+                in normalize(gaceta["title"]).casefold()
+            )
+        ]
+
+        candidate = (
+            matching[0]
+            if matching
+            else (
+                same_day[0]
+                if len(same_day) == 1
+                else None
+            )
+        )
+
+        if candidate and gaceta["all_day"]:
+            gaceta["start"] = candidate["start"]
+            gaceta["end"] = candidate["end"]
+            gaceta["all_day"] = False
+
+        result.append(gaceta)
+
+    return deduplicate(result)
 
 
 def deduplicate(events):
-    """
-    No elimina dos eventos distintos de la misma categoría
-    en la misma fecha.
-
-    La clave incluye fecha, hora y título.
-    """
-
     unique = {}
 
     for event in events:
@@ -694,8 +649,8 @@ def deduplicate(events):
         old = unique[key]
 
         old_score = sum(
-            bool(old.get(field))
-            for field in (
+            bool(old.get(k))
+            for k in (
                 "url",
                 "location",
                 "description",
@@ -703,8 +658,8 @@ def deduplicate(events):
         )
 
         new_score = sum(
-            bool(event.get(field))
-            for field in (
+            bool(event.get(k))
+            for k in (
                 "url",
                 "location",
                 "description",
@@ -716,57 +671,8 @@ def deduplicate(events):
 
     return sorted(
         unique.values(),
-        key=lambda item: item["start"],
+        key=lambda e: e["start"],
     )
-
-
-def merge_events(
-    gaceta_events,
-    agenda_events,
-):
-    """
-    La Gaceta manda.
-
-    La Agenda únicamente complementa hora/enlace cuando
-    la Gaceta no proporcionó hora.
-    """
-
-    result = []
-
-    for gaceta in gaceta_events:
-        candidates = [
-            agenda
-            for agenda in agenda_events
-            if (
-                agenda["category"]
-                == gaceta["category"]
-                and agenda["start"].date()
-                == gaceta["start"].date()
-            )
-        ]
-
-        if candidates:
-            agenda = candidates[0]
-
-            if gaceta["all_day"]:
-                gaceta["start"] = agenda["start"]
-                gaceta["end"] = agenda["end"]
-                gaceta["all_day"] = False
-
-            if agenda.get("url"):
-                gaceta["url"] = agenda["url"]
-
-            if agenda.get("location"):
-                gaceta["location"] = agenda["location"]
-
-            gaceta["description"] += (
-                "\nComplementado con la "
-                "Agenda Parlamentaria."
-            )
-
-        result.append(gaceta)
-
-    return deduplicate(result)
 
 
 def uid_for(event):
@@ -791,68 +697,81 @@ def build_calendar(events):
         "prodid",
         "-//Congreso Jalisco Calendar//ES//",
     )
-    calendar.add("version", "2.0")
-    calendar.add("calscale", "GREGORIAN")
+
+    calendar.add(
+        "version",
+        "2.0",
+    )
+
+    calendar.add(
+        "calscale",
+        "GREGORIAN",
+    )
+
     calendar.add(
         "X-WR-CALNAME",
         "Congreso de Jalisco",
     )
+
     calendar.add(
         "X-WR-TIMEZONE",
         TIMEZONE,
     )
 
-    for event_data in events:
+    for data in events:
         event = Event()
 
         event.add(
             "uid",
-            uid_for(event_data),
+            uid_for(data),
         )
 
-        if event_data["all_day"]:
+        if data["all_day"]:
             event.add(
                 "dtstart",
-                event_data["start"].date(),
+                data["start"].date(),
             )
+
             event.add(
                 "dtend",
-                event_data["end"].date(),
+                data["end"].date(),
             )
+
         else:
             event.add(
                 "dtstart",
-                event_data["start"],
+                data["start"],
             )
+
             event.add(
                 "dtend",
-                event_data["end"],
+                data["end"],
             )
 
         event.add(
             "summary",
-            event_data["title"],
+            data["title"],
         )
 
         event.add(
             "categories",
-            event_data["category"],
+            data["category"],
         )
 
-        description = event_data.get(
+        description = data.get(
             "description",
             "",
         )
 
-        if event_data.get("url"):
-            description += (
-                "\nFuente: "
-                + event_data["url"]
-            )
-
+        if data.get("url"):
             event.add(
                 "url",
-                event_data["url"],
+                data["url"],
+            )
+
+            description += (
+                "\nFuente: "
+                + data["url"]
             )
 
         event.add(
@@ -860,10 +779,10 @@ def build_calendar(events):
             description,
         )
 
-        if event_data.get("location"):
+        if data.get("location"):
             event.add(
                 "location",
-                event_data["location"],
+                data["location"],
             )
 
         calendar.add_component(event)
@@ -872,14 +791,10 @@ def build_calendar(events):
 
 
 def main():
-    print("=" * 60)
-    print(
-        "CONGRESO DE JALISCO - CALENDARIO"
-    )
-    print(
-        "FUENTE PRINCIPAL: GACETA PARLAMENTARIA"
-    )
-    print("=" * 60)
+    print("=" * 70)
+    print("CONGRESO DE JALISCO - CALENDARIO")
+    print("FUENTE PRINCIPAL: GACETA PARLAMENTARIA")
+    print("=" * 70)
 
     gaceta_events = get_gaceta_events()
 
@@ -901,44 +816,47 @@ def main():
     )
 
     pleno = sum(
-        event["category"] == PLENO_NAME
-        for event in events
+        e["category"] == PLENO_NAME
+        for e in events
     )
 
     commission = sum(
-        event["category"] == COMMISSION_NAME
-        for event in events
+        e["category"] == COMMISSION_NAME
+        for e in events
     )
 
     print("\nRESUMEN")
-    print("=" * 40)
+    print("=" * 50)
     print(f"Pleno: {pleno}")
     print(f"Comisión: {commission}")
     print(f"TOTAL: {len(events)}")
-    print("=" * 40)
+    print("=" * 50)
 
-    for event in events:
+    for e in events:
         print(
-            event["start"].strftime(
+            e["start"].strftime(
                 "%Y-%m-%d %H:%M"
             ),
             "|",
-            event["category"],
+            e["category"],
             "|",
-            event["title"],
+            e["title"],
         )
 
     calendar = build_calendar(events)
 
-    Path(
-        OUTPUT_FILE
-    ).write_bytes(
+    Path(OUTPUT_FILE).write_bytes(
         calendar.to_ical()
     )
 
     print(
         f"\nCalendario generado: "
         f"{OUTPUT_FILE}"
+    )
+
+    print(
+        f"Total de eventos: "
+        f"{len(events)}"
     )
 
 
