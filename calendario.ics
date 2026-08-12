@@ -5,67 +5,65 @@ CALSCALE:GREGORIAN
 X-WR-CALNAME:Congreso de Jalisco
 X-WR-TIMEZONE:America/Mexico_City
 BEGIN:VEVENT
-SUMMARY:09:00 - SESIÓN NUM.87 DEL PLENO DEL CONGRESO\, SOLEMNE
+SUMMARY:SESIÓN NUM.87 DEL PLENO DEL CONGRESO\, SOLEMNE
 DTSTART;TZID=America/Mexico_City:20260709T090000
 DTEND;TZID=America/Mexico_City:20260709T100000
-UID:31a21d226e3f40bc9a7d0debc1befb1526fdbbe2@congreso-jalisco
+UID:fe375bd0506ba8f326cea82b83f58267bd5d6357@congreso-jalisco
 CATEGORIES:Pleno
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:11:00 - SESIÓN NUM.89 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
+SUMMARY:SESIÓN NUM.88 DEL PLENO DEL CONGRESO\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20260709T140400
+DTEND;TZID=America/Mexico_City:20260709T150400
+UID:e24222efd82cca4963fa91859dac818a1a75d78d@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.89 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
 DTSTART;TZID=America/Mexico_City:20260715T110000
 DTEND;TZID=America/Mexico_City:20260715T120000
-UID:1ed3be0700a58d0025f4a4ef10e490b60aacaab6@congreso-jalisco
+UID:7b63c0272d8de470c5dff1ea7a1b0ab32465cbdf@congreso-jalisco
 CATEGORIES:Pleno
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:15:00 - SESIÓN NUM. 17 DE COMISIÓN DE HIGIENE\, SALUD PÚBLICA Y
-  PREVENCIÓN DE LAS ADICCIONES\, ORDINARIA
+SUMMARY:SESIÓN NUM. 17 DE COMISIÓN DE HIGIENE\, SALUD PÚBLICA Y PREVENC
+ IÓN DE LAS ADICCIONES\, ORDINARIA
 DTSTART;TZID=America/Mexico_City:20260717T150000
 DTEND;TZID=America/Mexico_City:20260717T160000
-UID:b91d93b349de5e5818bb3aad2bf0afb1e97c4747@congreso-jalisco
+UID:9963b1776ca11f2c13d2a20c52360233b8bf122b@congreso-jalisco
 CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
  ciones
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:15:00 - SESIÓN NUM. 17 DE COMISIÓN DE HIGIENE\, SALUD PÚBLICA Y
-  PREVENCIÓN DE LAS ADICCIONES\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260720T150000
-DTEND;TZID=America/Mexico_City:20260720T160000
-UID:267a67adaa45018f49d8cb292bbd8d805a919a35@congreso-jalisco
-CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
- ciones
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:09:00 - SESIÓN NUM.90 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
+SUMMARY:SESIÓN NUM.90 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
 DTSTART;TZID=America/Mexico_City:20260721T090000
 DTEND;TZID=America/Mexico_City:20260721T100000
-UID:8ee4c3a47800d13a909920cefb1411e4ec0f2cd0@congreso-jalisco
+UID:b45d567970b80c2997581c33dd825bbdfa252649@congreso-jalisco
 CATEGORIES:Pleno
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:SESIÓN NUM.91 DEL PLENO DEL CONGRESO\, ORDINARIA
-DTSTART;VALUE=DATE:20260813
-DTEND;VALUE=DATE:20260814
-UID:43a3900f079872be160b410785e48cb1647be0ce@congreso-jalisco
+DTSTART;TZID=America/Mexico_City:20260813T090000
+DTEND;TZID=America/Mexico_City:20260813T100000
+UID:ad0fe6686e5075d5b13d0fbea496967c4118c79e@congreso-jalisco
 CATEGORIES:Pleno
-DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
- aria.\nFuente: https://gaceta.congresojal.gob.mx
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 END:VCALENDAR
