@@ -1,0 +1,40 @@
+name: Diagnostico Gaceta Congreso Jalisco
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostico:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Instalar Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Ejecutar diagnóstico
+        run: python diagnostico_gaceta.py
+
+      - name: Subir diagnóstico
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostico-gaceta
+          path: |
+            gaceta_debug.png
+            gaceta_debug.html
+            gaceta_dom_diagnostico.txt
+          if-no-files-found: warn
