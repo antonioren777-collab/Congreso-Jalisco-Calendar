@@ -34,32 +34,24 @@ TIMEZONE = "America/Mexico_City"
 # ============================================================
 
 PLENO_PATTERNS = (
-    "sesión ordinaria",
-    "sesion ordinaria",
-    "sesión extraordinaria",
-    "sesion extraordinaria",
-    "sesión solemne",
-    "sesion solemne",
+    "pleno",
 )
 
 COMMISSION_PATTERNS = (
+    "comisión de higiene, salud pública y prevención de las adicciones",
+    "comision de higiene, salud publica y prevencion de las adicciones",
+
+    "comisión de higiene, salud pública",
+    "comision de higiene, salud publica",
+
     "comisión de higiene y salud",
     "comision de higiene y salud",
 
     "comisión de higiene, salud",
     "comision de higiene, salud",
 
-    "comisión de higiene salud",
-    "comision de higiene salud",
-
-    "comisión de salud e higiene",
-    "comision de salud e higiene",
-
     "comisión de salud",
     "comision de salud",
-
-    "comisión de higiene, salud pública",
-    "comision de higiene, salud publica",
 
     "prevención de las adicciones",
     "prevencion de las adicciones",
