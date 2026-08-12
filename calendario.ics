@@ -4,4 +4,148 @@ PRODID:-//Congreso Jalisco Calendar//ES//
 CALSCALE:GREGORIAN
 X-WR-CALNAME:Congreso de Jalisco
 X-WR-TIMEZONE:America/Mexico_City
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260706T120000
+DTEND;TZID=America/Mexico_City:20260706T130000
+UID:a1c07ff26c7a6194e264ae39a2743c0af570066b@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260708T110000
+DTEND;TZID=America/Mexico_City:20260708T120000
+UID:accccec62c5c39b265d7302530371409669fc3a8@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260709T090000
+DTEND;TZID=America/Mexico_City:20260709T100000
+UID:c93ec5cf2fc06fe824fa52e6b9d589372a460858@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260715T110000
+DTEND;TZID=America/Mexico_City:20260715T120000
+UID:98c465681f37a3d68bbd01f1e56efee5c7d4255e@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260716T100000
+DTEND;TZID=America/Mexico_City:20260716T110000
+UID:0fe7fc06229c3e7800e434477deba3b776a87c12@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260717T100000
+DTEND;TZID=America/Mexico_City:20260717T110000
+UID:1bbebc8f7af6373df008c0777df3a3c7df5a3a62@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260720T100000
+DTEND;TZID=America/Mexico_City:20260720T110000
+UID:c6355db7a6da2431901e690186d1c93e6989851a@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260721T090000
+DTEND;TZID=America/Mexico_City:20260721T100000
+UID:3293a4def59334140cdee392e5534f9e98b541d8@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260722T110000
+DTEND;TZID=America/Mexico_City:20260722T120000
+UID:20b147b7494d286a05b59711b2a4fd18ac786211@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260723T110000
+DTEND;TZID=America/Mexico_City:20260723T120000
+UID:467f38b00f2e86879a11f85810c3bdbaccea9e27@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260724T113000
+DTEND;TZID=America/Mexico_City:20260724T123000
+UID:d21957acf3a874d620d637d3922c4b70344647a3@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN DE PLENO DEL CONGRESO REANUDACION SESIÓN DE PLENO DEL CON
+ GRESO SESIÓN DE COMISIÓN/COMITÉ EVENTO DE COMISIÓN/COMITÉ PLENO DEL C
+ ONGRESO Y COMISIÓN/COMITÉ
+DTSTART;TZID=America/Mexico_City:20260813T090000
+DTEND;TZID=America/Mexico_City:20260813T100000
+UID:1d0e7333e7c753c0e4a0000c1b8aa984e51310bb@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Detectado directamente en el Calendario de la Gaceta Parlament
+ aria.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
 END:VCALENDAR
