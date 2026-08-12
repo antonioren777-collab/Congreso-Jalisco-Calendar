@@ -278,7 +278,17 @@ def get_gaceta_events():
                 page.wait_for_timeout(350)
 
                 body = page.locator("body").inner_text(timeout=10000)
-                title, time_value = parse_detail(body)
+                if "sesple" in cls or "rsesple" in cls:
+    category_hint = "Pleno"
+elif "sescom" in cls:
+    category_hint = "Comisión"
+else:
+    category_hint = None
+
+title, time_value = parse_detail(
+    body,
+    category_hint,
+)
 
                 if not title:
                     print("    -> sin detalle de sesión")
