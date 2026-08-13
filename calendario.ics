@@ -58,9 +58,9 @@ URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:SESIÓN NUM.91 DEL PLENO DEL CONGRESO\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260813T090000
-DTEND;TZID=America/Mexico_City:20260813T100000
-UID:ad0fe6686e5075d5b13d0fbea496967c4118c79e@congreso-jalisco
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260814
+UID:43a3900f079872be160b410785e48cb1647be0ce@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
