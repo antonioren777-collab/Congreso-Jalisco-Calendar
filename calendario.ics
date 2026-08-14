@@ -25,10 +25,20 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.89 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
-DTSTART;TZID=America/Mexico_City:20260715T110000
-DTEND;TZID=America/Mexico_City:20260715T120000
-UID:7b63c0272d8de470c5dff1ea7a1b0ab32465cbdf@congreso-jalisco
+SUMMARY:SESIÓN NUM.87 DEL PLENO DEL CONGRESO\, SOLEMNE
+DTSTART;TZID=America/Mexico_City:20260715T090000
+DTEND;TZID=America/Mexico_City:20260715T100000
+UID:ddae206d3faf6fb15032d2dca77169aadf33cee6@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.88 DEL PLENO DEL CONGRESO\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20260715T140400
+DTEND;TZID=America/Mexico_City:20260715T150400
+UID:b7b6f803e7f35a0d0761521584c50511d4e04f05@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
