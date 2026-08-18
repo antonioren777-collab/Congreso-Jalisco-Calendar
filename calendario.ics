@@ -44,4 +44,36 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.89 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
+DTSTART;TZID=America/Mexico_City:20260716T110000
+DTEND;TZID=America/Mexico_City:20260716T120000
+UID:822caa87f19f52c87f611a889d843f9781d444bc@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM. 17 DE COMISIÓN DE HIGIENE\, SALUD PÚBLICA Y PREVENC
+ IÓN DE LAS ADICCIONES\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20260717T150000
+DTEND;TZID=America/Mexico_City:20260717T160000
+UID:9963b1776ca11f2c13d2a20c52360233b8bf122b@congreso-jalisco
+CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
+ ciones
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.91 DEL PLENO DEL CONGRESO\, ORDINARIA
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260821
+UID:1d1fddfea492d3f726094442f15f93c5735ce63d@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
 END:VCALENDAR
