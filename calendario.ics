@@ -67,10 +67,10 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.91 DEL PLENO DEL CONGRESO\, ORDINARIA
-DTSTART;VALUE=DATE:20260820
-DTEND;VALUE=DATE:20260821
-UID:1d1fddfea492d3f726094442f15f93c5735ce63d@congreso-jalisco
+SUMMARY:SESIÓN NUM.90 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
+DTSTART;TZID=America/Mexico_City:20260721T090000
+DTEND;TZID=America/Mexico_City:20260721T100000
+UID:b45d567970b80c2997581c33dd825bbdfa252649@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
