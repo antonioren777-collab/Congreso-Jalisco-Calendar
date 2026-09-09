@@ -45,33 +45,13 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.89 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
-DTSTART;TZID=America/Mexico_City:20260716T110000
-DTEND;TZID=America/Mexico_City:20260716T120000
-UID:822caa87f19f52c87f611a889d843f9781d444bc@congreso-jalisco
-CATEGORIES:Pleno
-DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
- o.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
 SUMMARY:SESIÓN NUM. 17 DE COMISIÓN DE HIGIENE\, SALUD PÚBLICA Y PREVENC
  IÓN DE LAS ADICCIONES\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260717T150000
-DTEND;TZID=America/Mexico_City:20260717T160000
-UID:9963b1776ca11f2c13d2a20c52360233b8bf122b@congreso-jalisco
+DTSTART;TZID=America/Mexico_City:20260720T150000
+DTEND;TZID=America/Mexico_City:20260720T160000
+UID:b6660c0c0b02c42c562cea0180641cbda3a9eaea@congreso-jalisco
 CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
  ciones
-DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
- o.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.90 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
-DTSTART;TZID=America/Mexico_City:20260721T090000
-DTEND;TZID=America/Mexico_City:20260721T100000
-UID:b45d567970b80c2997581c33dd825bbdfa252649@congreso-jalisco
-CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
@@ -103,6 +83,16 @@ SUMMARY:SESIÓN NUM.92 DEL PLENO DEL CONGRESO\, ORDINARIA
 DTSTART;TZID=America/Mexico_City:20260903T093000
 DTEND;TZID=America/Mexico_City:20260903T103000
 UID:aba77215d9a5569fec2813439236108c086d0035@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.93 DEL PLENO DEL CONGRESO\, SOLEMNE
+DTSTART;VALUE=DATE:20260917
+DTEND;VALUE=DATE:20260918
+UID:7e21688e51912b7e8491a99fbc3e4cba04e9dc20@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
