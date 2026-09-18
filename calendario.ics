@@ -90,9 +90,9 @@ URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:SESIÓN NUM.93 DEL PLENO DEL CONGRESO\, SOLEMNE
-DTSTART;VALUE=DATE:20260917
-DTEND;VALUE=DATE:20260918
-UID:7e21688e51912b7e8491a99fbc3e4cba04e9dc20@congreso-jalisco
+DTSTART;TZID=America/Mexico_City:20260917T090000
+DTEND;TZID=America/Mexico_City:20260917T100000
+UID:80456e470b5e7023de95a94bdcfe7d2dfe049c77@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
