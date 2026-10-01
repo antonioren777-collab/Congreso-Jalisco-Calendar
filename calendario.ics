@@ -120,4 +120,14 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.95 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
+DTSTART;TZID=America/Mexico_City:20260930T120000
+DTEND;TZID=America/Mexico_City:20260930T130000
+UID:9c799114c0ca5b0f4e63b49db5dcdaf8e6d324c5@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
 END:VCALENDAR
