@@ -121,10 +121,22 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.95 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
-DTSTART;TZID=America/Mexico_City:20260930T140000
-DTEND;TZID=America/Mexico_City:20260930T150000
-UID:65e26f89796cc9d3734cec1160d7f68997dc5aaf@congreso-jalisco
+SUMMARY:SESIÓN NUM. 19 DE COMISIÓN DE HIGIENE\, SALUD PÚBLICA Y PREVENC
+ IÓN DE LAS ADICCIONES\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20260925T093000
+DTEND;TZID=America/Mexico_City:20260925T103000
+UID:82523571599b5d67631791e2ec1024f9f60b6176@congreso-jalisco
+CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
+ ciones
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.94 DEL PLENO DEL CONGRESO\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20260925T100000
+DTEND;TZID=America/Mexico_City:20260925T110000
+UID:e45523024a7295c084b4a48b22c8d90bd17ce3dc@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
