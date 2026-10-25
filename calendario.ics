@@ -25,10 +25,20 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.89 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
-DTSTART;TZID=America/Mexico_City:20260715T110000
-DTEND;TZID=America/Mexico_City:20260715T120000
-UID:7b63c0272d8de470c5dff1ea7a1b0ab32465cbdf@congreso-jalisco
+SUMMARY:SESIÓN NUM.87 DEL PLENO DEL CONGRESO\, SOLEMNE
+DTSTART;TZID=America/Mexico_City:20260715T090000
+DTEND;TZID=America/Mexico_City:20260715T100000
+UID:ddae206d3faf6fb15032d2dca77169aadf33cee6@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.88 DEL PLENO DEL CONGRESO\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20260715T140400
+DTEND;TZID=America/Mexico_City:20260715T150400
+UID:b7b6f803e7f35a0d0761521584c50511d4e04f05@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
@@ -47,42 +57,10 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.90 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
-DTSTART;TZID=America/Mexico_City:20260721T090000
-DTEND;TZID=America/Mexico_City:20260721T100000
-UID:b45d567970b80c2997581c33dd825bbdfa252649@congreso-jalisco
-CATEGORIES:Pleno
-DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
- o.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.90 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
-DTSTART;TZID=America/Mexico_City:20260722T090000
-DTEND;TZID=America/Mexico_City:20260722T100000
-UID:a88b9cd7cf01a582841f3d4c7c83469d65920aa2@congreso-jalisco
-CATEGORIES:Pleno
-DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
- o.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:SESIÓN NUM. 18 DE COMISIÓN DE HIGIENE\, SALUD PÚBLICA Y PREVENC
- IÓN DE LAS ADICCIONES\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260901T133000
-DTEND;TZID=America/Mexico_City:20260901T143000
-UID:b3ba2bef6953e50d47adbf4942e9110e54cb2c81@congreso-jalisco
-CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
- ciones
-DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
- o.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
 SUMMARY:SESIÓN NUM.92 DEL PLENO DEL CONGRESO\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20260903T100000
-DTEND;TZID=America/Mexico_City:20260903T110000
-UID:6a385064c95db981402af5d113cbc9fab8f6d74b@congreso-jalisco
+DTSTART;TZID=America/Mexico_City:20260908T100000
+DTEND;TZID=America/Mexico_City:20260908T110000
+UID:67a64fdfd1541b54d3cb385d1d0bc7f080e23bd5@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
@@ -93,6 +71,28 @@ SUMMARY:SESIÓN NUM.93 DEL PLENO DEL CONGRESO\, SOLEMNE
 DTSTART;TZID=America/Mexico_City:20260917T090000
 DTEND;TZID=America/Mexico_City:20260917T100000
 UID:80456e470b5e7023de95a94bdcfe7d2dfe049c77@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM. 19 DE COMISIÓN DE HIGIENE\, SALUD PÚBLICA Y PREVENC
+ IÓN DE LAS ADICCIONES\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20260924T093000
+DTEND;TZID=America/Mexico_City:20260924T103000
+UID:4670cd033b814ca0ca28395a9c371643c0ff9ec2@congreso-jalisco
+CATEGORIES:Comisión de Higiene\, Salud Pública y Prevención de las Adic
+ ciones
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.94 DEL PLENO DEL CONGRESO\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20260924T100000
+DTEND;TZID=America/Mexico_City:20260924T110000
+UID:1ac93ff3cba37d5b621c1af2095877365d709ba4@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
@@ -122,19 +122,19 @@ URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:SESIÓN NUM.95 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
-DTSTART;TZID=America/Mexico_City:20261001T140000
-DTEND;TZID=America/Mexico_City:20261001T150000
-UID:9e1896ca14cda817b167c95fbf565d831ea4d7b4@congreso-jalisco
+DTSTART;TZID=America/Mexico_City:20260930T140000
+DTEND;TZID=America/Mexico_City:20260930T150000
+UID:65e26f89796cc9d3734cec1160d7f68997dc5aaf@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.96 DEL PLENO DEL CONGRESO\, ORDINARIA
-DTSTART;TZID=America/Mexico_City:20261023T130000
-DTEND;TZID=America/Mexico_City:20261023T140000
-UID:9a97c02d2e6afedc7b301c720fc77e61dd95fda5@congreso-jalisco
+SUMMARY:SESIÓN NUM.95 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
+DTSTART;TZID=America/Mexico_City:20261001T140000
+DTEND;TZID=America/Mexico_City:20261001T150000
+UID:9e1896ca14cda817b167c95fbf565d831ea4d7b4@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
