@@ -14,4 +14,14 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.99 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
+DTSTART;TZID=America/Mexico_City:20261109T100000
+DTEND;TZID=America/Mexico_City:20261109T110000
+UID:4f14131b327c33b0873654b29761937b94d21f5b@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
 END:VCALENDAR
