@@ -24,4 +24,24 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.100 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
+DTSTART;VALUE=DATE:20261111
+DTEND;VALUE=DATE:20261112
+UID:6b394696539b33e5bd7ce8afd8ab87c70d794dd6@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:SESIÓN NUM.100 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
+DTSTART;VALUE=DATE:20261113
+DTEND;VALUE=DATE:20261114
+UID:a8bac2ba7124a89074abef12c8aa0d29fe57eda7@congreso-jalisco
+CATEGORIES:Pleno
+DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
+ o.\nFuente: https://gaceta.congresojal.gob.mx
+URL:https://gaceta.congresojal.gob.mx
+END:VEVENT
 END:VCALENDAR
