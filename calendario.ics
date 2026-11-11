@@ -15,16 +15,6 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.99 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
-DTSTART;TZID=America/Mexico_City:20261109T100000
-DTEND;TZID=America/Mexico_City:20261109T110000
-UID:4f14131b327c33b0873654b29761937b94d21f5b@congreso-jalisco
-CATEGORIES:Pleno
-DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
- o.\nFuente: https://gaceta.congresojal.gob.mx
-URL:https://gaceta.congresojal.gob.mx
-END:VEVENT
-BEGIN:VEVENT
 SUMMARY:SESIÓN NUM.100 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
 DTSTART;VALUE=DATE:20261111
 DTEND;VALUE=DATE:20261112
@@ -35,10 +25,10 @@ DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
 URL:https://gaceta.congresojal.gob.mx
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:SESIÓN NUM.100 DEL PLENO DEL CONGRESO\, EXTRAORDINARIA
-DTSTART;VALUE=DATE:20261113
-DTEND;VALUE=DATE:20261114
-UID:a8bac2ba7124a89074abef12c8aa0d29fe57eda7@congreso-jalisco
+SUMMARY:SESIÓN NUM.103 DEL PLENO DEL CONGRESO\, ORDINARIA
+DTSTART;TZID=America/Mexico_City:20261113T084500
+DTEND;TZID=America/Mexico_City:20261113T094500
+UID:9aea57a9d052287376b30a7f2fde62d4320e83f8@congreso-jalisco
 CATEGORIES:Pleno
 DESCRIPTION:Fuente: Gaceta Parlamentaria del Congreso del Estado de Jalisc
  o.\nFuente: https://gaceta.congresojal.gob.mx
